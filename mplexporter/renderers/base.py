@@ -34,34 +34,38 @@ class Renderer(object):
         return self.ax_has_ygrid(self._current_ax)
 
     @contextmanager
-    def draw_figure(self, fig):
+    def draw_figure(self, fig, properties):
         if hasattr(self, "_current_fig") and self._current_fig is not None:
             warnings.warn("figure embedded in figure: something is wrong")
         self._current_fig = fig
-        self.open_figure(fig)
+        self._fig_properties = properties
+        self.open_figure(fig, properties)
         yield
         self.close_figure(fig)
         self._current_fig = None
+        self._fig_properties = {}
 
     @contextmanager
-    def draw_axes(self, ax):
+    def draw_axes(self, ax, properties):
         if hasattr(self, "_current_ax") and self._current_ax is not None:
             warnings.warn("axes embedded in axes: something is wrong")
         self._current_ax = ax
-        self.open_axes(ax)
+        self._ax_properties = properties
+        self.open_axes(ax, properties)
         yield
         self.close_axes(ax)
         self._current_ax = None
+        self._ax_properties = {}
 
     # Following are the functions which should be overloaded in subclasses
 
-    def open_figure(self, fig):
+    def open_figure(self, fig, properties):
         pass
 
     def close_figure(self, fig):
         pass
 
-    def open_axes(self, ax):
+    def open_axes(self, ax, properties):
         pass
 
     def close_axes(self, ax):

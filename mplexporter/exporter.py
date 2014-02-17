@@ -66,12 +66,26 @@ class Exporter(object):
             return code            
 
     def _crawl_fig(self, fig):
-        with self.renderer.draw_figure(fig):
+        properties = {'figwidth': fig.get_figwidth(),
+                      'figheight': fig.get_figheight(),
+                      'dpi': fig.dpi}
+        with self.renderer.draw_figure(fig, properties):
             for ax in fig.axes:
                 self._crawl_ax(ax)
 
     def _crawl_ax(self, ax):
-        with self.renderer.draw_axes(ax):
+        properties = {'xlim': ax.get_xlim(),
+                      'ylim': ax.get_ylim(),
+                      'xlabel': ax.get_xlabel(),
+                      'ylabel': ax.get_ylabel(),
+                      'title': ax.get_title(),
+                      'bounds': ax.get_position().bounds,
+                      'xgrid': (ax.xaxis._gridOnMajor
+                                and ax.xaxis.get_gridlines()),
+                      'ygrid': (ax.yaxis._gridOnMajor
+                                and ax.yaxis.get_gridlines()),
+                      'dynamic': ax.get_navigate()}
+        with self.renderer.draw_axes(ax, properties):
             self._extract_lines(ax)
 
     def _extract_lines(self, ax):

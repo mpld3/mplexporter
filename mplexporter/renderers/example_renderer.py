@@ -10,13 +10,13 @@ class ExampleRenderer(Renderer):
     def __init__(self):
         self.output = ""
 
-    def open_figure(self, fig):
+    def open_figure(self, fig, properties):
         self.output += "opening figure\n"
 
     def close_figure(self, fig):
         self.output += "closing figure\n"
 
-    def open_axes(self, ax):
+    def open_axes(self, ax, properties):
         self.output += "  opening axes\n"
 
     def close_axes(self, ax):
