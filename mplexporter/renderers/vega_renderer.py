@@ -1,5 +1,6 @@
 import warnings
 import json
+import random
 from .base import Renderer
 from ..exporter import Exporter
 
@@ -78,18 +79,48 @@ class VegaRenderer(Renderer):
                            }
                        })
 
-    def dict(self):
-        return dict(width=self.figwidth,
-                    height=self.figheight,
-                    data=self.data,
-                    scales=self.scales,
-                    axes=self.axes,
-                    marks=self.marks)
+    def to_dict(self):
+        return dict(self)
+
+    def to_json(self, *args, **kwargs):
+        return json.dumps(self.to_dict(), *args, **kwargs)
+
+    def __iter__(self):
+        yield "width", self.figwidth
+        yield "height", self.figheight,
+        yield "data", self.data,
+        yield "scales", self.scales
+        yield "axes", self.axes
+        yield "marks", self.marks
+
+    def _repr_html_(self):
+        """Build the HTML representation for IPython."""
+        id = random.randint(0, 2 ** 16)
+        html = '<div id="vis%d"></div>' % id
+        html += '<script>\n'
+        html += VEGA_TEMPLATE % (self.to_json(), id)
+        html += '</script>\n'
+        return html
 
 
 def fig_to_vega(fig):
     """Convert a matplotlib figure to vega dictionary"""
     renderer = VegaRenderer()
     Exporter(renderer).run(fig)
-    return renderer.dict()
-    
+    return renderer
+
+
+VEGA_TEMPLATE = """
+( function() {
+  var _do_plot = function() {
+    if ( (typeof vg == 'undefined') && (typeof IPython != 'undefined')) {
+      $([IPython.events]).on("vega_loaded.vincent", _do_plot);
+      return;
+    }
+    vg.parse.spec(%s, function(chart) {
+      chart({el: "#vis%d"}).update();
+    });
+  };
+  _do_plot();
+})();
+"""
