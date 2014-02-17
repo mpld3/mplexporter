@@ -10,16 +10,16 @@ class VincentRenderer(Renderer):
         self.figheight = int(fig.get_figheight() * fig.dpi)
 
     def draw_line(self, data, coordinates, style):
-        import vincent
+        import vincent  # only import if VincentRenderer is used
         if coordinates != 'data':
             warnings.warn("Only data coordinates supported. Skipping this")
         linedata = {'x': data[:, 0],
                     'y': data[:, 1]}
         line = vincent.Line(linedata, iter_idx='x',
                             width=self.figwidth, height=self.figheight)
-        line.scales['color'].range = [style['color']]
 
-        # TODO: set the 
+        # TODO: respect the other style settings
+        line.scales['color'].range = [style['color']]
 
         if self.chart is None:
             self.chart = line
@@ -27,14 +27,17 @@ class VincentRenderer(Renderer):
             warnings.warn("Multiple plot elements not yet supported")
 
     def draw_markers(self, data, coordinates, style):
-        import vincent
+        import vincent  # only import if VincentRenderer is used
         if coordinates != 'data':
             warnings.warn("Only data coordinates supported. Skipping this")
         markerdata = {'x': data[:, 0],
                       'y': data[:, 1]}
         markers = vincent.Scatter(markerdata, iter_idx='x',
                                   width=self.figwidth, height=self.figheight)
+
+        # TODO: respect the other style settings
         markers.scales['color'].range = [style['facecolor']]
+
         if self.chart is None:
             self.chart = markers
         else:
