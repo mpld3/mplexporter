@@ -3,10 +3,7 @@ Example Renderer
 ================
 This shows an example of a do-nothing renderer, along with how to use it.
 """
-import matplotlib.pyplot as plt
-
-from mplexporter.renderer import Renderer
-from mplexporter.exporter import Exporter
+from .base import Renderer
 
 
 class ExampleRenderer(Renderer):
@@ -30,19 +27,3 @@ class ExampleRenderer(Renderer):
 
     def draw_markers(self, data, coordinates, style):
         self.output += "    draw {0} markers\n".format(data.shape[0])
-
-
-def run_example():
-    fig, ax = plt.subplots()
-    ax.plot(range(20), '-b')
-    ax.plot(range(10), '.k')
-
-    renderer = ExampleRenderer()
-    exporter = Exporter(renderer)
-
-    exporter.run(fig)
-    print renderer.output
-
-
-if __name__ == '__main__':
-    run_example()

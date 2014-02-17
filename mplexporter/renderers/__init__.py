@@ -1,2 +1,3 @@
 from .base import Renderer
-from ._vincent import VincentRenderer, fig_to_vincent
+from .vincent_renderer import VincentRenderer, fig_to_vincent
+from .example_renderer import ExampleRenderer
