@@ -18,19 +18,19 @@ class VegaRenderer(Renderer):
     def open_axes(self, ax, properties):
         if len(self.axes) > 0:
             warnings.warn("multiple axes not yet supported")
-        self.axes = [dict(type="x", scale="x", ticks=10),
-                     dict(type="y", scale="y", ticks=10)]
+        self.axes = [dict(type="x", scale="x", ticks=10,
+                          title=properties['xlabel']),
+                     dict(type="y", scale="y", ticks=10,
+                          title=properties['ylabel'])]
         self.scales = [dict(name="x",
                             domain=properties['xlim'],
                             type="linear",
                             range="width",
-                            title=properties['xlabel']
                         ),
                        dict(name="y",
                             domain=properties['ylim'],
                             type="linear",
                             range="height",
-                            title=properties['ylabel']
                         ),]
 
     def draw_line(self, data, coordinates, style):
