@@ -8,10 +8,27 @@ from . import utils
 
 
 class Exporter(object):
-    def __init__(self, renderer):
+    """Matplotlib Exporter
+
+    Parameters
+    ----------
+    renderer : Renderer object
+        The render processes the Exporter output to create a visualization of
+        a figure.
+    close_mpl : bool
+        If True (default), close the matplotlib figure as it is rendered. This
+        is useful for when the exporter is used within the notebook, or with
+        an interactive matplotlib backend.
+    """
+
+    def __init__(self, renderer, close_mpl=True):
+        self.close_mpl = close_mpl
         self.renderer = renderer
 
     def run(self, fig):
+        if self.close_mpl:
+            import matplotlib.pyplot as plt
+            plt.close(fig)
         self._crawl_fig(fig)
 
     def _process_transform(self, transform, ax=None, data=None):

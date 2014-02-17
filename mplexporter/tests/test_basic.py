@@ -1,5 +1,5 @@
 from ..exporter import Exporter
-from ..renderer import Renderer
+from ..renderers import Renderer
 
 import matplotlib
 matplotlib.use('Agg')

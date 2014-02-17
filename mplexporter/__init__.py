@@ -1,2 +1,2 @@
-from renderer import Renderer
+from renderers import Renderer
 from exporter import Exporter
