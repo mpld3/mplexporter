@@ -69,7 +69,7 @@ def get_line_style(line):
     if style['alpha'] is None:
         style['alpha'] = 1
     style['color'] = color_to_hex(line.get_color())
-    style['width'] = line.get_linewidth()
+    style['linewidth'] = line.get_linewidth()
     style['dasharray'] = get_dasharray(line)
     return style
 

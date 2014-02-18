@@ -80,10 +80,10 @@ class Exporter(object):
                       'ylabel': ax.get_ylabel(),
                       'title': ax.get_title(),
                       'bounds': ax.get_position().bounds,
-                      'xgrid': (ax.xaxis._gridOnMajor
-                                and ax.xaxis.get_gridlines()),
-                      'ygrid': (ax.yaxis._gridOnMajor
-                                and ax.yaxis.get_gridlines()),
+                      'xgrid': bool(ax.xaxis._gridOnMajor
+                                    and ax.xaxis.get_gridlines()),
+                      'ygrid': bool(ax.yaxis._gridOnMajor
+                                    and ax.yaxis.get_gridlines()),
                       'dynamic': ax.get_navigate()}
         with self.renderer.draw_axes(ax, properties):
             self._extract_lines(ax)
