@@ -77,3 +77,6 @@ class Renderer(object):
     def draw_markers(self, data, coordinates, style):
         raise NotImplementedError()
 
+    def draw_text(self, text, position, coordinates, style):
+        raise NotImplementedError()
+

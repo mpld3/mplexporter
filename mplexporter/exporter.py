@@ -87,6 +87,7 @@ class Exporter(object):
                       'dynamic': ax.get_navigate()}
         with self.renderer.draw_axes(ax, properties):
             self._extract_lines(ax)
+            self._extract_texts(ax)
 
     def _extract_lines(self, ax):
         for line in ax.lines:
@@ -103,3 +104,21 @@ class Exporter(object):
                 self.renderer.draw_markers(data,
                                            coordinates=code,
                                            style=markerstyle)
+
+    def _extract_texts(self, ax):
+        for text in ax.texts:
+            # xlabel and ylabel are passed as arguments to the axes
+            # we don't want to pass them again here
+            if text is ax.get_xlabel():
+                continue
+            if text is ax.get_ylabel():
+                continue
+
+            content = text.get_text()
+            if content:
+                transform = text.get_transform()
+                position = text.get_position()
+                code, position = self._process_transform(transform, ax,
+                                                         position)
+                style = utils.get_text_style(text)
+                self.renderer.draw_text(content, position, code, style)
