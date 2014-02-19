@@ -1,5 +1,5 @@
-from .. exporter import Exporter
-from .. renderers.plotly import PlotlyRenderer
+from mplexporter.exporter import Exporter
+from mplexporter.renderers.plotly import PlotlyRenderer
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,17 +25,5 @@ def plot_sin():
     exporter = Exporter(renderer)
     exporter.run(fig)
 
-    # check output from PlotlyRenderer against expected output
-    for line1, line2 in zip(renderer.output.strip().split(),
-                        PLOT_SIN_OUTPUT.strip().split()):
-        assert line1 == line2
-
-
-PLOT_SIN_OUTPUT = """
-opening figure
-  opening axes
-    draw line with 100 points
-    draw 100 markers
-  closing axes
-closing figure
-"""
+if __name__ == '__main__':
+    plot_sin()
