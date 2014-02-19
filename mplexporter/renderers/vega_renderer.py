@@ -50,7 +50,7 @@ class VegaRenderer(Renderer):
                                    "y": {"scale": "y", "field": "data.y"},
                                    "stroke": {"value": style['color']},
                                    "strokeOpacity": {"value": style['alpha']},
-                                   "strokeWidth": {"value": style['width']},
+                                   "strokeWidth": {"value": style['linewidth']},
                                }
                            }
                        })
@@ -79,35 +79,42 @@ class VegaRenderer(Renderer):
                            }
                        })
 
-    def to_dict(self):
-        return dict(self)
 
-    def to_json(self, *args, **kwargs):
-        return json.dumps(self.to_dict(), *args, **kwargs)
+class VegaHTML(object):
+    def __init__(self, renderer):
+        self.specification = dict(width=renderer.figwidth,
+                                  height=renderer.figheight,
+                                  data=renderer.data,
+                                  scales=renderer.scales,
+                                  axes=renderer.axes,
+                                  marks=renderer.marks)
 
-    def __iter__(self):
-        yield "width", self.figwidth
-        yield "height", self.figheight,
-        yield "data", self.data,
-        yield "scales", self.scales
-        yield "axes", self.axes
-        yield "marks", self.marks
-
-    def _repr_html_(self):
+    def html(self):
         """Build the HTML representation for IPython."""
         id = random.randint(0, 2 ** 16)
         html = '<div id="vis%d"></div>' % id
         html += '<script>\n'
-        html += VEGA_TEMPLATE % (self.to_json(), id)
+        html += VEGA_TEMPLATE % (json.dumps(self.specification), id)
         html += '</script>\n'
         return html
 
+    def _repr_html_(self):
+        return self.html()
 
-def fig_to_vega(fig):
-    """Convert a matplotlib figure to vega dictionary"""
+
+def fig_to_vega(fig, notebook=False):
+    """Convert a matplotlib figure to vega dictionary
+
+    if notebook=True, then return an object which will display in a notebook
+    otherwise, return an HTML string.
+    """
     renderer = VegaRenderer()
     Exporter(renderer).run(fig)
-    return renderer
+    vega_html = VegaHTML(renderer)
+    if notebook:
+        return vega_html
+    else:
+        return vega_html.html()
 
 
 VEGA_TEMPLATE = """
