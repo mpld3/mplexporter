@@ -4,6 +4,7 @@ Matplotlib Exporter
 This submodule contains tools for crawling a matplotlib figure and exporting
 relevant pieces to a renderer.
 """
+import io
 from . import utils
 
 
@@ -26,12 +27,16 @@ class Exporter(object):
         self.renderer = renderer
 
     def run(self, fig):
+        # Calling savefig executes the draw() command, putting elements
+        # in the correct place.
+        fig.savefig(io.BytesIO(), format='png', dpi=fig.dpi)
         if self.close_mpl:
             import matplotlib.pyplot as plt
             plt.close(fig)
         self._crawl_fig(fig)
 
-    def _process_transform(self, transform, ax=None, data=None):
+    @staticmethod
+    def _process_transform(transform, ax=None, data=None):
         """Process the transform and convert data to figure or data coordinates
 
         Parameters
@@ -109,9 +114,9 @@ class Exporter(object):
         for text in ax.texts:
             # xlabel and ylabel are passed as arguments to the axes
             # we don't want to pass them again here
-            if text is ax.get_xlabel():
+            if text is ax.xaxis.label:
                 continue
-            if text is ax.get_ylabel():
+            if text is ax.yaxis.label:
                 continue
 
             content = text.get_text()
