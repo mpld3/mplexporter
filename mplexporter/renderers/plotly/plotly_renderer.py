@@ -76,11 +76,14 @@ class PlotlyRenderer(Renderer):
         self.data += data_dict,
 
 
-def fig_to_plotly(fig, username=None, api_key=None):
+def fig_to_plotly(fig, username=None, api_key=None, notebook=False):
     """Convert a matplotlib figure to plotly dictionary
 
     """
     renderer = PlotlyRenderer(username=username, api_key=api_key)
     Exporter(renderer).run(fig)
     py = plotly.plotly(renderer.username, renderer.api_key)
-    py.plot(renderer.data, layout=renderer.layout)
+    if notebook:
+        return py.iplot(renderer.data, layout=renderer.layout)
+    else:
+        py.plot(renderer.data, layout=renderer.layout)
