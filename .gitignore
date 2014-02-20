@@ -41,3 +41,6 @@ nosetests.xml
 
 # ipython backups
 .ipynb_checkpoints
+
+# os x files
+.DS_Store
