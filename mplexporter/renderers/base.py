@@ -71,12 +71,20 @@ class Renderer(object):
     def close_axes(self, ax):
         pass
 
-    def draw_line(self, data, coordinates, style):
-        raise NotImplementedError()
-
     def draw_markers(self, data, coordinates, style):
         raise NotImplementedError()
 
     def draw_text(self, text, position, coordinates, style):
         raise NotImplementedError()
 
+    def draw_path(self, data, coordinates, pathcodes, style):
+        raise NotImplementedError()
+
+    def draw_line(self, data, coordinates, style):
+        # by default, draw the line via the draw_path() command. Some renderers
+        # might wish to override this and provide more fine-grained behavior.
+        pathcodes = ['M'] + (data.shape[0] - 1) * ['L']
+        pathstyle = dict(facecolor='none', **style)
+        pathstyle['edgecolor'] = pathstyle.pop('color')
+        pathstyle['edgewidth'] = pathstyle.pop('linewidth')
+        self.draw_path(data, coordinates, pathcodes, pathstyle)

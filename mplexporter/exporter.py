@@ -68,7 +68,7 @@ class Exporter(object):
         if data is not None:
             return code, transform.transform(data)
         else:
-            return code            
+            return code
 
     def _crawl_fig(self, fig):
         properties = {'figwidth': fig.get_figwidth(),
@@ -92,6 +92,7 @@ class Exporter(object):
                       'dynamic': ax.get_navigate()}
         with self.renderer.draw_axes(ax, properties):
             self._extract_lines(ax)
+            self._extract_patches(ax)
             self._extract_texts(ax)
 
     def _extract_lines(self, ax):
@@ -127,3 +128,15 @@ class Exporter(object):
                                                          position)
                 style = utils.get_text_style(text)
                 self.renderer.draw_text(content, position, code, style)
+
+    def _extract_patches(self, ax):
+        for patch in ax.patches:
+            vertices, pathcodes = utils.SVG_path(patch.get_path())
+            transform = patch.get_transform()
+            coordinates, vertices = self._process_transform(transform,
+                                                            ax, vertices)
+            linestyle = utils.get_path_style(patch)
+            self.renderer.draw_path(vertices,
+                                    coordinates=coordinates,
+                                    pathcodes=pathcodes,
+                                    style=linestyle)

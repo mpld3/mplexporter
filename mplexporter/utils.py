@@ -2,6 +2,10 @@
 Utility Routines for Working with Matplotlib Objects
 ====================================================
 """
+import itertools
+
+import numpy as np
+
 from matplotlib.colors import colorConverter
 from matplotlib.path import Path
 from matplotlib.markers import MarkerStyle
@@ -12,7 +16,6 @@ def color_to_hex(color):
     """Convert matplotlib color code to hex color code"""
     rgb = colorConverter.to_rgb(color)
     return '#{0:02X}{1:02X}{2:02X}'.format(*(int(255 * c) for c in rgb))
-
 
 
 def many_to_one(input_dict):
@@ -47,23 +50,64 @@ def get_dasharray(obj, i=None):
 
 PATH_DICT = {Path.LINETO: 'L',
              Path.MOVETO: 'M',
-             Path.STOP: 'STOP',
              Path.CURVE3: 'S',
              Path.CURVE4: 'C',
              Path.CLOSEPOLY: 'Z'}
 
 
-def SVG_path(path, transform=None):
-    """Return a list of SVG path tuples of a (transformed) path"""
+def SVG_path(path, transform=None, simplify=False):
+    """Construct the vertices and SVG codes for the path
+
+    Parameters
+    ----------
+    path : matplotlib.Path object
+
+    transform : matplotlib transform (optional)
+        if specified, the path will be transformed before computing the output.
+
+    Returns
+    -------
+    vertices : array
+        The shape (M, 2) array of vertices of the Path. Note that some Path
+        codes require multiple vertices, so the length of these vertices may
+        be longer than the list of path codes.
+    path_codes : list
+        A length N list of single-character path codes, N <= M. Each code is
+        a single character, in ['L','M','S','C','Z']. See the standard SVG
+        path specification for a description of these.
+    """
     if transform is not None:
         path = path.transformed(transform)
 
-    return [(PATH_DICT[path_code], vertices.tolist())
-            for vertices, path_code in path.iter_segments(simplify=False)]
-        
+    vc_tuples = [(vertices if path_code != Path.CLOSEPOLY else [],
+                  PATH_DICT[path_code])
+                 for (vertices, path_code)
+                 in path.iter_segments(simplify=simplify)]
+
+    if not vc_tuples:
+        # empty path is a special case
+        return np.zeros((0, 2)), []
+    else:
+        vertices, codes = zip(*vc_tuples)
+        vertices = np.array(list(itertools.chain(*vertices))).reshape(-1, 2)
+        return vertices, list(codes)
+
+
+def get_path_style(path):
+    """Get the style dictionary for matplotlib path objects"""
+    style = {}
+    style['alpha'] = path.get_alpha()
+    if style['alpha'] is None:
+        style['alpha'] = 1
+    style['edgecolor'] = color_to_hex(path.get_edgecolor())
+    style['facecolor'] = color_to_hex(path.get_facecolor())
+    style['edgewidth'] = path.get_linewidth()
+    style['dasharray'] = get_dasharray(path)
+    return style
+
 
 def get_line_style(line):
-    """Return the line style dict for the line"""
+    """Get the style dictionary for matplotlib line objects"""
     style = {}
     style['alpha'] = line.get_alpha()
     if style['alpha'] is None:
@@ -75,7 +119,7 @@ def get_line_style(line):
 
 
 def get_marker_style(line):
-    """Return the marker style dict for the line"""
+    """Get the style dictionary for matplotlib marker objects"""
     style = {}
     style['alpha'] = line.get_alpha()
     if style['alpha'] is None:
@@ -94,6 +138,7 @@ def get_marker_style(line):
                                    markertransform)
     return style
 
+
 def get_text_style(text):
     """Return the text style dict for a text instance"""
     style = {}
@@ -102,7 +147,7 @@ def get_text_style(text):
         style['alpha'] = 1
     style['fontsize'] = text.get_size()
     style['color'] = color_to_hex(text.get_color())
-    style['halign'] = text.get_horizontalalignment() # left, center, right
-    style['valign'] = text.get_verticalalignment() # baseline, center, top
+    style['halign'] = text.get_horizontalalignment()  # left, center, right
+    style['valign'] = text.get_verticalalignment()  # baseline, center, top
     style['rotation'] = text.get_rotation()
     return style
