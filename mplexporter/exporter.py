@@ -6,6 +6,7 @@ relevant pieces to a renderer.
 """
 import io
 from . import utils
+import matplotlib.pyplot as plt
 
 
 class Exporter(object):
@@ -71,28 +72,47 @@ class Exporter(object):
             return code            
 
     def _crawl_fig(self, fig):
-        properties = {'figwidth': fig.get_figwidth(),
-                      'figheight': fig.get_figheight(),
-                      'dpi': fig.dpi}
+        properties = {param: plt.getp(fig, param) for param in utils.FIG_PARAMS}
         with self.renderer.draw_figure(fig, properties):
             for ax in fig.axes:
                 self._crawl_ax(ax)
 
+    ## old _crawl_fig fun
+    # def _crawl_fig(self, fig):
+    #     properties = {'figwidth': fig.get_figwidth(),
+    #                   'figheight': fig.get_figheight(),
+    #                   'dpi': fig.dpi}
+    #     with self.renderer.draw_figure(fig, properties):
+    #         for ax in fig.axes:
+    #             self._crawl_ax(ax)
+
     def _crawl_ax(self, ax):
-        properties = {'xlim': ax.get_xlim(),
-                      'ylim': ax.get_ylim(),
-                      'xlabel': ax.get_xlabel(),
-                      'ylabel': ax.get_ylabel(),
-                      'title': ax.get_title(),
-                      'bounds': ax.get_position().bounds,
-                      'xgrid': bool(ax.xaxis._gridOnMajor
-                                    and ax.xaxis.get_gridlines()),
-                      'ygrid': bool(ax.yaxis._gridOnMajor
-                                    and ax.yaxis.get_gridlines()),
-                      'dynamic': ax.get_navigate()}
+        properties = {param: plt.getp(ax, param) for param in utils.AX_PARAMS}
+        # for compatibility with old _crawl_ax method
+        properties['xgrid']= bool(ax.xaxis._gridOnMajor and ax.xaxis.get_gridlines())
+        properties['ygrid'] = bool(ax.yaxis._gridOnMajor and ax.yaxis.get_gridlines())
+        properties['bounds'] = ax.get_position().bounds  # ? = plt.getp(ax, 'position')
+        properties['dynamic'] = ax.get_navigate() # ? = plt.getp(ax, 'navigate')
         with self.renderer.draw_axes(ax, properties):
             self._extract_lines(ax)
             self._extract_texts(ax)
+
+    ## old _crawl_ax fun
+    # def _crawl_ax(self, ax):
+    #     properties = {'xlim': ax.get_xlim(),
+    #                   'ylim': ax.get_ylim(),
+    #                   'xlabel': ax.get_xlabel(),
+    #                   'ylabel': ax.get_ylabel(),
+    #                   'title': ax.get_title(),
+    #                   'bounds': ax.get_position().bounds,
+    #                   'xgrid': bool(ax.xaxis._gridOnMajor
+    #                                 and ax.xaxis.get_gridlines()),
+    #                   'ygrid': bool(ax.yaxis._gridOnMajor
+    #                                 and ax.yaxis.get_gridlines()),
+    #                   'dynamic': ax.get_navigate()}
+    #     with self.renderer.draw_axes(ax, properties):
+    #         self._extract_lines(ax)
+    #         self._extract_texts(ax)
 
     def _extract_lines(self, ax):
         for line in ax.lines:
