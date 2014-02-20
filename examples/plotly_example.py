@@ -1,6 +1,4 @@
-from mplexporter.exporter import Exporter
-from mplexporter.renderers.plotly import PlotlyRenderer
-
+from mplexporter.renderers.plotly import PlotlyRenderer, fig_to_plotly
 import numpy as np
 import matplotlib.pyplot as plt
 username = 'IPython.Demo'
@@ -21,9 +19,7 @@ def plot_sin():
 
     # export info from matplotlib fig and render with plotly!
     fig = plt.gcf()
-    renderer = PlotlyRenderer(username=username, api_key=api_key)
-    exporter = Exporter(renderer)
-    exporter.run(fig)
+    fig_to_plotly(fig, username, api_key)
 
 if __name__ == '__main__':
     plot_sin()

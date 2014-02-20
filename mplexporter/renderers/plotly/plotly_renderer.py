@@ -7,6 +7,7 @@ import plotly
 
 from . import plotly_utils
 from .. base import Renderer
+from ... exporter import Exporter
 
 
 class PlotlyRenderer(Renderer):
@@ -25,9 +26,6 @@ class PlotlyRenderer(Renderer):
 
     def close_figure(self, fig):
         self.output += "closing figure\n"
-        print self.output
-        py = plotly.plotly(self.username, self.api_key)
-        py.plot(self.data, layout=self.layout)  # make call to plotly!
 
     def open_axes(self, ax, properties):
         self.output += "  opening axes\n"
@@ -76,3 +74,13 @@ class PlotlyRenderer(Renderer):
         data_dict['marker']['symbol'] = plotly_utils.convert_symbol(style['marker'])
         # not sure whether we need to incorporate style['markerpath']
         self.data += data_dict,
+
+
+def fig_to_plotly(fig, username=None, api_key=None):
+    """Convert a matplotlib figure to plotly dictionary
+
+    """
+    renderer = PlotlyRenderer(username=username, api_key=api_key)
+    Exporter(renderer).run(fig)
+    py = plotly.plotly(renderer.username, renderer.api_key)
+    py.plot(renderer.data, layout=renderer.layout)
