@@ -1,1 +1,1 @@
-from .plotly_renderer import PlotlyRenderer
+from .plotly_renderer import PlotlyRenderer, fig_to_plotly
