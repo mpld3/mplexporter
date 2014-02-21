@@ -5,7 +5,22 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-T1 = {
+
+def test_simple_line():
+    fig, ax = plt.subplots()
+    ax.plot(range(10), '-k')
+    ax.plot(range(5), '.k')
+
+    renderer = PlotlyRenderer()
+    exporter = Exporter(renderer)
+    exporter.run(fig)
+    assert SIMPLE_LINE['data'] == renderer.data
+    assert SIMPLE_LINE['layout'] == renderer.layout
+
+
+## dictionaries for tests
+
+SIMPLE_LINE = {
     'data': [
         {'line': {'color': '#000000',
                   'dash': 'solid',
@@ -46,44 +61,3 @@ T1 = {
                }
     }
 }
-
-T2_OUTPUT = """
-opening figure
-  opening axis 1
-    draw line with 20 points
-  closing axis 1
-  opening axis 2
-    draw 10 markers
-  closing axis 2
-closing figure
-"""
-
-
-def test_1():
-    fig, ax = plt.subplots()
-    ax.plot(range(10), '-k')
-    ax.plot(range(5), '.k')
-    # plt.title('test1')
-
-    renderer = PlotlyRenderer()
-    exporter = Exporter(renderer)
-    exporter.run(fig)
-    assert T1['data'] == renderer.data
-    assert T1['layout'] == renderer.layout
-
-
-def test_2():
-    plt.figure(1)
-    plt.subplot(211)
-    plt.plot(range(20), '-k')
-    plt.subplot(212)
-    plt.plot(range(10), '.k')
-    fig = plt.gcf()
-
-    renderer = PlotlyRenderer()
-    exporter = Exporter(renderer)
-    exporter.run(fig)
-
-    for line1, line2 in zip(renderer.output.strip().split(),
-                            T2_OUTPUT.strip().split()):
-        assert line1 == line2
