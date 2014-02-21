@@ -27,41 +27,26 @@ class PlotlyRenderer(Renderer):
     def close_figure(self, fig):
         self.output += "closing figure\n"
         self.configure_subplots()
+        self.configure_primary_axes()  # changes 'y1', 'xaxis1', etc. to 'y', 'xaxis', etc.
         self.layout['showlegend'] = False
 
     def open_axes(self, ax, properties):
         self.axis_ct += 1
         self.output += "  opening axis {}\n".format(self.axis_ct)
-        if self.axis_ct == 1:
-            layout = {
-                'title': properties['title'],
-                'xaxis': {
-                    'range': properties['xlim'],
-                    'title': properties['xlabel'],
-                    'showgrid': properties['xgrid']
-                },
-                'yaxis': {
-                    'domain': [0,1],
-                    'range': properties['ylim'],
-                    'title': properties['ylabel'],
-                    'showgrid': properties['ygrid'],
-                }
+        layout = {
+            'title': properties['title'],
+            'xaxis{}'.format(self.axis_ct): {
+                'range': properties['xlim'],
+                'title': properties['xlabel'],
+                'showgrid': properties['xgrid']
+            },
+            'yaxis{}'.format(self.axis_ct): {
+                'domain': [0,1],
+                'range': properties['ylim'],
+                'title': properties['ylabel'],
+                'showgrid': properties['ygrid'],
             }
-        else:
-            layout = {
-                'title': properties['title'],
-                'xaxis{}'.format(self.axis_ct): {
-                    'range': properties['xlim'],
-                    'title': properties['xlabel'],
-                    'showgrid': properties['xgrid']
-                },
-                'yaxis{}'.format(self.axis_ct): {
-                    'domain': [0,1],
-                    'range': properties['ylim'],
-                    'title': properties['ylabel'],
-                    'showgrid': properties['ygrid'],
-                }
-            }
+        }
         for key, value in layout.items():
             self.layout[key] = value
 
@@ -71,34 +56,20 @@ class PlotlyRenderer(Renderer):
     def draw_line(self, data, coordinates, style):
         if coordinates == 'data':
             self.output += "    draw line with {0} points\n".format(data.shape[0])
-            if self.axis_ct == 1:
-                trace = {
-                    'mode': 'lines',
-                    'x': [xy_pair[0] for xy_pair in data],
-                    'y': [xy_pair[1] for xy_pair in data],
-                    'line': {
-                        'opacity': style['alpha'],
-                        'color': style['color'],
-                        'width': style['linewidth'],
-                        'dash': plotly_utils.convert_dash(style['dasharray'])
-                    }
+            trace = {
+                'mode': 'lines',
+                'x': [xy_pair[0] for xy_pair in data],
+                'y': [xy_pair[1] for xy_pair in data],
+                'xaxis': 'x{}'.format(self.axis_ct),
+                'yaxis': 'y{}'.format(self.axis_ct),
+                'line': {
+                    'opacity': style['alpha'],
+                    'color': style['color'],
+                    'width': style['linewidth'],
+                    'dash': plotly_utils.convert_dash(style['dasharray'])
                 }
-                self.data += trace,
-            else:
-                trace = {
-                    'mode': 'lines',
-                    'x': [xy_pair[0] for xy_pair in data],
-                    'y': [xy_pair[1] for xy_pair in data],
-                    'xaxis': 'x{}'.format(self.axis_ct),
-                    'yaxis': 'y{}'.format(self.axis_ct),
-                    'line': {
-                        'opacity': style['alpha'],
-                        'color': style['color'],
-                        'width': style['linewidth'],
-                        'dash': plotly_utils.convert_dash(style['dasharray'])
-                    }
-                }
-                self.data += trace,
+            }
+            self.data += trace,
         else:
             self.output += "    received {}-point line with 'figure' coordinates, skipping!".format(data.shape[0])
 
@@ -109,6 +80,8 @@ class PlotlyRenderer(Renderer):
                 'mode': 'markers',
                 'x': [xy_pair[0] for xy_pair in data],
                 'y': [xy_pair[1] for xy_pair in data],
+                'xaxis': 'x{}'.format(self.axis_ct),
+                'yaxis': 'y{}'.format(self.axis_ct),
                 'marker': {
                     'opacity': style['alpha'],
                     'color': style['facecolor'],
@@ -129,15 +102,34 @@ class PlotlyRenderer(Renderer):
         if num_plots > 1:
             spacing = 0.3/num_plots # magic numbers! change this!
             plot_dim = (1 - spacing*(num_plots-1))/num_plots
-            self.layout['yaxis']['domain'] = [1-plot_dim, 1]
-            self.layout['xaxis']['anchor'] = 'y'
-            for subplot_num in range(1, num_plots):
+            for subplot_num in range(0, num_plots):
                 domain_end = 1 - (plot_dim + spacing)*subplot_num
                 domain_start = domain_end - plot_dim
                 if domain_start < 0:
                     domain_start = 0
                 self.layout['yaxis{}'.format(subplot_num + 1)]['domain'] = [domain_start, domain_end]
                 self.layout['xaxis{}'.format(subplot_num + 1)]['anchor'] = 'y{}'.format(subplot_num + 1)
+
+    def configure_primary_axes(self):
+        for trace in self.data:
+            if trace['xaxis'] == 'x1':
+                trace['xaxis'] = 'x'
+            if trace['yaxis'] == 'y1':
+                trace['yaxis'] = 'y'
+        if 'xaxis1' in self.layout:
+            self.layout['xaxis'] = self.layout.pop('xaxis1')
+        if 'yaxis1' in self.layout:
+            self.layout['yaxis'] = self.layout.pop('yaxis1')
+        try:
+            if 'y1' in self.layout['xaxis']['anchor']:
+                self.layout['xaxis']['anchor'] = 'y'
+        except KeyError:
+            pass
+        try:
+            if 'x1' in self.layout['yaxis']['anchor']:
+                self.layout['yaxis']['anchor'] = 'x'
+        except KeyError:
+            pass
 
 
 def fig_to_plotly(fig, username=None, api_key=None, notebook=False):

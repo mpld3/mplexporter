@@ -53,4 +53,4 @@ def four_plots():
     fig_to_plotly(fig, username, api_key)
 
 if __name__ == '__main__':
-    plot_sin()
+    four_plots()
