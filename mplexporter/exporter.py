@@ -36,7 +36,7 @@ class Exporter(object):
         self._crawl_fig(fig)
 
     @staticmethod
-    def _process_transform(transform, ax=None, data=None):
+    def _process_transform(transform, ax=None, data=None, return_trans=False):
         """Process the transform and convert data to figure or data coordinates
 
         Parameters
@@ -49,6 +49,8 @@ class Exporter(object):
 
         data : ndarray (optional)
             The array of data to be transformed.
+
+        return_trans : bool (optional)
 
         Returns
         -------
@@ -66,9 +68,16 @@ class Exporter(object):
             code = "figure"
 
         if data is not None:
-            return code, transform.transform(data)
+            if return_trans:
+                return code, transform.transform(data), transform
+            else:
+                return code, transform.transform(data)
+            
         else:
-            return code
+            if return_trans:
+                return code, transform
+            else:
+                return code
 
     def _crawl_fig(self, fig):
         properties = {'figwidth': fig.get_figwidth(),
@@ -94,6 +103,7 @@ class Exporter(object):
             self._extract_lines(ax)
             self._extract_patches(ax)
             self._extract_texts(ax)
+            self._extract_collections(ax)
 
     def _extract_lines(self, ax):
         for line in ax.lines:
@@ -140,3 +150,34 @@ class Exporter(object):
                                     coordinates=coordinates,
                                     pathcodes=pathcodes,
                                     style=linestyle)
+
+    def _extract_collections(self, ax):
+        for collection in ax.collections:
+            (transform, transOffset,
+             offsets, paths) = collection._prepare_points()
+
+            offset_coordinates, offsets = self._process_transform(transOffset,
+                                                                  ax,
+                                                                  offsets)
+            processed_paths = [utils.SVG_path(path) for path in paths]
+            path_coordinates, tr = self._process_transform(transform, ax,
+                                                           return_trans=True)
+            processed_paths = [(tr.transform(path[0]), path[1])
+                               for path in processed_paths]
+            path_transforms = collection.get_transforms()
+            styles = {'linewidth':collection.get_linewidths(),
+                      'facecolor':collection.get_facecolors(),
+                      'edgecolor':collection.get_edgecolors(),
+                      'alpha':collection._alpha}
+
+            offset_dict = {"data": "before",
+                           "screen": "after"}
+            offset_order = offset_dict[collection.get_offset_position()]
+
+            self.renderer.draw_path_collection(processed_paths,
+                                               path_coordinates,
+                                               path_transforms,
+                                               offsets,
+                                               offset_coordinates,
+                                               offset_order,
+                                               styles)
