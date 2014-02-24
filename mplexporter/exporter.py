@@ -187,7 +187,8 @@ class Exporter(object):
             styles = {'linewidth':collection.get_linewidths(),
                       'facecolor':collection.get_facecolors(),
                       'edgecolor':collection.get_edgecolors(),
-                      'alpha':collection._alpha}
+                      'alpha':collection._alpha,
+                      'zorder':collection.get_zorder()}
 
             offset_dict = {"data": "before",
                            "screen": "after"}
@@ -207,4 +208,5 @@ class Exporter(object):
             self.renderer.draw_image(imdata=self.image_base64_data(image),
                                      extent=image.get_extent(),
                                      coordinates="data",
-                                     style={"alpha": image.get_alpha()})
+                                     style={"alpha": image.get_alpha(),
+                                            "zorder": image.get_zorder()})

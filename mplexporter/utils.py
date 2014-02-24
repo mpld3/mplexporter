@@ -103,6 +103,7 @@ def get_path_style(path):
     style['facecolor'] = color_to_hex(path.get_facecolor())
     style['edgewidth'] = path.get_linewidth()
     style['dasharray'] = get_dasharray(path)
+    style['zorder'] = path.get_zorder()
     return style
 
 
@@ -115,6 +116,7 @@ def get_line_style(line):
     style['color'] = color_to_hex(line.get_color())
     style['linewidth'] = line.get_linewidth()
     style['dasharray'] = get_dasharray(line)
+    style['zorder'] = line.get_zorder()
     return style
 
 
@@ -136,6 +138,7 @@ def get_marker_style(line):
                        + Affine2D().scale(markersize, -markersize))
     style['markerpath'] = SVG_path(markerstyle.get_path(),
                                    markertransform)
+    style['zorder'] = line.get_zorder()
     return style
 
 
@@ -150,4 +153,5 @@ def get_text_style(text):
     style['halign'] = text.get_horizontalalignment()  # left, center, right
     style['valign'] = text.get_verticalalignment()  # baseline, center, top
     style['rotation'] = text.get_rotation()
+    style['zorder'] = text.get_zorder()
     return style
