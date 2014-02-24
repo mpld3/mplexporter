@@ -47,7 +47,7 @@ class PlotlyRenderer(Renderer):
     def close_axes(self, ax):
         self.output += "  closing axes\n"
 
-    def draw_line(self, data, coordinates, style):
+    def draw_line(self, data, coordinates, style, mplobj=None):
         self.output += "    draw line with {0} points\n".format(data.shape[0])
         data_dict = {'x': [], 'y': []}
         for xy_pair in data:
@@ -60,7 +60,7 @@ class PlotlyRenderer(Renderer):
         data_dict['line']['dash'] = plotly_utils.convert_dash(style['dasharray'])
         self.data += data_dict,
 
-    def draw_markers(self, data, coordinates, style):
+    def draw_markers(self, data, coordinates, style, mplobj=None):
         self.output += "    draw {0} markers\n".format(data.shape[0])
         data_dict = {'x': [], 'y': []}
         for xy_pair in data:

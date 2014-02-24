@@ -132,13 +132,13 @@ class Exporter(object):
             if linestyle['dasharray'] not in ['None', 'none', None]:
                 self.renderer.draw_line(data,
                                         coordinates=code,
-                                        style=linestyle)
+                                        style=linestyle, mplobj=line)
 
             markerstyle = utils.get_marker_style(line)
             if markerstyle['marker'] not in ['None', 'none', None]:
                 self.renderer.draw_markers(data,
                                            coordinates=code,
-                                           style=markerstyle)
+                                           style=markerstyle, mplobj=line)
 
     def _extract_texts(self, ax):
         for text in ax.texts:
@@ -156,7 +156,8 @@ class Exporter(object):
                 code, position = self._process_transform(transform, ax,
                                                          position)
                 style = utils.get_text_style(text)
-                self.renderer.draw_text(content, position, code, style)
+                self.renderer.draw_text(content, position, code,
+                                        style, mplobj=text)
 
     def _extract_patches(self, ax):
         for patch in ax.patches:
@@ -168,7 +169,8 @@ class Exporter(object):
             self.renderer.draw_path(vertices,
                                     coordinates=coordinates,
                                     pathcodes=pathcodes,
-                                    style=linestyle)
+                                    style=linestyle,
+                                    mplobj=patch)
 
     def _extract_collections(self, ax):
         for collection in ax.collections:
@@ -200,7 +202,8 @@ class Exporter(object):
                                                offsets,
                                                offset_coordinates,
                                                offset_order,
-                                               styles)
+                                               styles,
+                                               mplobj=collection)
 
     def _extract_images(self, ax):
         for image in ax.images:
@@ -209,4 +212,5 @@ class Exporter(object):
                                      extent=image.get_extent(),
                                      coordinates="data",
                                      style={"alpha": image.get_alpha(),
-                                            "zorder": image.get_zorder()})
+                                            "zorder": image.get_zorder()},
+                                     mplobj=image)

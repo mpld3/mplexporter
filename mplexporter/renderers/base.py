@@ -74,7 +74,7 @@ class Renderer(object):
     def close_axes(self, ax):
         pass
 
-    def draw_line(self, data, coordinates, style):
+    def draw_line(self, data, coordinates, style, mplobj=None):
         """
         Draw a line. By default, draw the line via the draw_path() command.
         Some renderers might wish to override this and provide more
@@ -92,12 +92,14 @@ class Renderer(object):
             or 'figure' for figure (pixel) coordinates.
         style : dictionary
             a dictionary specifying the appearance of the line.
+        mplobj : matplotlib object
+            the matplotlib plot element which generated this line
         """
         pathcodes = ['M'] + (data.shape[0] - 1) * ['L']
         pathstyle = dict(facecolor='none', **style)
         pathstyle['edgecolor'] = pathstyle.pop('color')
         pathstyle['edgewidth'] = pathstyle.pop('linewidth')
-        self.draw_path(data, coordinates, pathcodes, pathstyle)
+        self.draw_path(data, coordinates, pathcodes, pathstyle, mplobj=mplobj)
 
     def _iter_path_collection(self, paths, path_transforms, offsets, styles):
         """Build an iterator over the elements of the path collection"""
@@ -115,7 +117,7 @@ class Renderer(object):
 
     def draw_path_collection(self, paths, path_coordinates, path_transforms,
                              offsets, offset_coordinates, offset_order,
-                             styles):
+                             styles, mplobj=None):
         """
         Draw a collection of paths. The paths, offsets, and styles are all
         iterables, and the number of paths is max(len(paths), len(offsets)).
@@ -153,6 +155,8 @@ class Renderer(object):
         styles: dictionary
             A dictionary in which each value is a list of length N, containing
             the style(s) for the paths.
+        mplobj : matplotlib object
+            the matplotlib plot element which generated this collection
         """
         if offset_order == "before":
             raise NotImplementedError("offset before transform")
@@ -171,9 +175,9 @@ class Renderer(object):
                    "edgewidth":lw,
                    "dasharray":"10,0", "alpha":styles['alpha']}
             self.draw_path(vertices, path_coordinates, pathcodes, style,
-                           offset, offset_coordinates)
+                           offset, offset_coordinates, mplobj=mplobj)
 
-    def draw_markers(self, data, coordinates, style):
+    def draw_markers(self, data, coordinates, style, mplobj=None):
         """
         Draw a set of markers. By default, this is done by repeatedly
         calling draw_path(), but renderers should generally overload
@@ -190,6 +194,8 @@ class Renderer(object):
             or 'figure' for figure (pixel) coordinates.
         style : dictionary
             a dictionary specifying the appearance of the markers.
+        mplobj : matplotlib object
+            the matplotlib plot element which generated this marker collection
         """
         vertices, pathcodes = style['markerpath']
         pathstyle = dict((key, style[key]) for key in ['alpha', 'edgecolor',
@@ -198,9 +204,9 @@ class Renderer(object):
         pathstyle['dasharray'] = "10,0"
         for vertex in data:
             self.draw_path(vertices, "points", pathcodes, pathstyle,
-                           vertex, coordinates)
+                           vertex, coordinates, mplobj=mplobj)
 
-    def draw_text(self, text, position, coordinates, style):
+    def draw_text(self, text, position, coordinates, style, mplobj=None):
         """
         Draw text on the image.
 
@@ -215,11 +221,13 @@ class Renderer(object):
             or 'figure' for figure (pixel) coordinates.
         style : dictionary
             a dictionary specifying the appearance of the text.
+        mplobj : matplotlib object
+            the matplotlib plot element which generated this text
         """
         raise NotImplementedError()
 
     def draw_path(self, data, coordinates, pathcodes, style,
-                  offset=None, offset_coordinates="data"):
+                  offset=None, offset_coordinates="data", mplobj=None):
         """
         Draw a path.
 
@@ -250,10 +258,12 @@ class Renderer(object):
         offset_coordinates : string (optional)
             A string code, which should be either 'data' for data coordinates,
             or 'figure' for figure (pixel) coordinates.
+        mplobj : matplotlib object
+            the matplotlib plot element which generated this path
         """
         raise NotImplementedError()
 
-    def draw_image(self, imdata, extent, coordinates, style):
+    def draw_image(self, imdata, extent, coordinates, style, mplobj=None):
         """
         Draw an image.
 
@@ -268,5 +278,7 @@ class Renderer(object):
             or 'figure' for figure (pixel) coordinates.
         style : dictionary
             a dictionary specifying the appearance of the image
+        mplobj : matplotlib object
+            the matplotlib plot object which generated this image
         """
         raise NotImplementedError()
