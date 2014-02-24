@@ -8,6 +8,8 @@ import io
 import base64
 from . import utils
 
+import matplotlib
+from matplotlib import ticker
 
 class Exporter(object):
     """Matplotlib Exporter
@@ -105,6 +107,43 @@ class Exporter(object):
             for ax in fig.axes:
                 self._crawl_ax(ax)
 
+    def _axis_props(self, axis):
+        props = {}
+        label1On = axis._major_tick_kw.get('label1On', True)
+
+        if isinstance(axis, matplotlib.axis.XAxis):
+            if label1On:
+                props['position'] = "bottom"
+            else:
+                props['position'] = "top"
+        elif isinstance(axis, matplotlib.axis.YAxis):
+            if label1On:
+                props['position'] = "left"
+            else:
+                props['position'] = "right"
+        else:
+            raise ValueError("{0} should be an Axis instance".format(axis))
+
+        props['nticks'] = len(axis.get_major_locator()())
+
+        # Use tick values if appropriate
+        locator = axis.get_major_locator()
+        if isinstance(locator, ticker.FixedLocator):
+            props['tickvalues'] = list(locator())
+        else:
+            props['tickvalues'] = None
+
+        # Find tick formats
+        formatter = axis.get_major_formatter()
+        if isinstance(formatter, ticker.NullFormatter):
+            props['tickformat'] = ""
+        elif not any(label.get_visible() for label in axis.get_ticklabels()):
+            props['tickformat'] = ""
+        else:
+            props['tickformat'] = None
+
+        return props
+
     def _crawl_ax(self, ax):
         properties = {'xlim': ax.get_xlim(),
                       'ylim': ax.get_ylim(),
@@ -116,7 +155,10 @@ class Exporter(object):
                                     and ax.xaxis.get_gridlines()),
                       'ygrid': bool(ax.yaxis._gridOnMajor
                                     and ax.yaxis.get_gridlines()),
-                      'dynamic': ax.get_navigate()}
+                      'dynamic': ax.get_navigate(),
+                      'axes': [self._axis_props(ax.xaxis),
+                               self._axis_props(ax.yaxis)],
+                  }
         with self.renderer.draw_axes(ax, properties):
             self._extract_lines(ax)
             self._extract_patches(ax)
