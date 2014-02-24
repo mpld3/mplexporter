@@ -5,6 +5,7 @@ This submodule contains tools for crawling a matplotlib figure and exporting
 relevant pieces to a renderer.
 """
 import io
+import base64
 from . import utils
 
 
@@ -79,6 +80,23 @@ class Exporter(object):
             else:
                 return code
 
+    @staticmethod
+    def image_base64_data(image):
+        ax = image.axes
+        binary_buffer = io.BytesIO()
+
+        # image is saved in axes coordinates: we need to temporarily
+        # set the correct limits to get the correct image, then undo it.
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        ax.set_xlim(image.get_extent()[:2])
+        ax.set_ylim(image.get_extent()[2:])
+        image.write_png(binary_buffer)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        binary_buffer.seek(0)
+        return base64.b64encode(binary_buffer.read()).decode('utf-8')
+
     def _crawl_fig(self, fig):
         properties = {'figwidth': fig.get_figwidth(),
                       'figheight': fig.get_figheight(),
@@ -104,6 +122,7 @@ class Exporter(object):
             self._extract_patches(ax)
             self._extract_texts(ax)
             self._extract_collections(ax)
+            self._extract_images(ax)
 
     def _extract_lines(self, ax):
         for line in ax.lines:
@@ -181,3 +200,11 @@ class Exporter(object):
                                                offset_coordinates,
                                                offset_order,
                                                styles)
+
+    def _extract_images(self, ax):
+        for image in ax.images:
+            imdata = self.image_base64_data(image)
+            self.renderer.draw_image(imdata=self.image_base64_data(image),
+                                     extent=image.get_extent(),
+                                     coordinates="data",
+                                     style={"alpha": image.get_alpha()})

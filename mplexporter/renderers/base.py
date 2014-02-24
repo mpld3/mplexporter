@@ -254,4 +254,19 @@ class Renderer(object):
         raise NotImplementedError()
 
     def draw_image(self, imdata, extent, coordinates, style):
+        """
+        Draw an image.
+
+        Parameters
+        ----------
+        imdata : string
+            base64 encoded png representation of the image
+        extent : list
+            the axes extent of the image: [xmin, xmax, ymin, ymax]
+        coordinates: string
+            A string code, which should be either 'data' for data coordinates,
+            or 'figure' for figure (pixel) coordinates.
+        style : dictionary
+            a dictionary specifying the appearance of the image
+        """
         raise NotImplementedError()
