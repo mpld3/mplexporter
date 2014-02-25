@@ -232,6 +232,54 @@ def get_grid_style(ax, grid_type='x'):
         return {}
 
 
+def get_figure_properties(fig):
+    return {'figwidth': fig.get_figwidth(),
+            'figheight': fig.get_figheight(),
+            'dpi': fig.dpi}
+
+
+def get_axes_properties(ax):
+    props = {'xlabel': ax.get_xlabel(),
+             'ylabel': ax.get_ylabel(),
+             'title': ax.get_title(),
+             'axesbg': color_to_hex(ax.patch.get_facecolor()),
+             'axesbgalpha': ax.patch.get_alpha(),
+             'bounds': ax.get_position().bounds,
+             'xgrid': bool(ax.xaxis._gridOnMajor
+                           and ax.xaxis.get_gridlines()),
+             'xgridstyle': get_grid_style(ax, 'x'),
+             'ygridstyle': get_grid_style(ax, 'y'),
+             'ygrid': bool(ax.yaxis._gridOnMajor
+                           and ax.yaxis.get_gridlines()),
+             'dynamic': ax.get_navigate(),
+             'axes': [get_axis_properties(ax.xaxis),
+                      get_axis_properties(ax.yaxis)]}
+
+    for axname in ['x', 'y']:
+        axis = getattr(ax, axname + 'axis')
+        domain = getattr(ax, 'get_{0}lim'.format(axname))()
+        lim = domain
+        if isinstance(axis.converter, matplotlib.dates.DateConverter):
+            scale = 'date'
+            domain = ["new Date{0}".format((d.year, d.month - 1, d.day,
+                                            d.hour, d.minute, d.second,
+                                            d.microsecond * 1E-3))
+                      for d in matplotlib.dates.num2date(domain)]
+        else:
+            scale = axis.get_scale()
+
+        if scale not in ['date', 'linear', 'log']:
+            raise ValueError("Unknown axis scale: "
+                             "{0}".format(axis[axname].get_scale()))
+
+        props[axname + 'scale'] = scale
+        props[axname + 'lim'] = lim
+        props[axname + 'domain'] = domain
+
+    return props
+    
+
+
 def image_to_base64(image):
     """
     Convert a matplotlib image to a base64 png representation

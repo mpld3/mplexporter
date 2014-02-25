@@ -97,34 +97,13 @@ class Exporter(object):
 
     def crawl_fig(self, fig):
         """Crawl the figure and process all axes"""
-        properties = {'figwidth': fig.get_figwidth(),
-                      'figheight': fig.get_figheight(),
-                      'dpi': fig.dpi}
-        with self.renderer.draw_figure(fig, properties):
+        with self.renderer.draw_figure(fig, utils.get_figure_properties(fig)):
             for ax in fig.axes:
                 self.crawl_ax(ax)
 
     def crawl_ax(self, ax):
         """Crawl the axes and process all elements within"""
-        properties = {'xlim': ax.get_xlim(),
-                      'ylim': ax.get_ylim(),
-                      'xlabel': ax.get_xlabel(),
-                      'ylabel': ax.get_ylabel(),
-                      'title': ax.get_title(),
-                      'axesbg': utils.color_to_hex(ax.patch.get_facecolor()),
-                      'axesbgalpha': ax.patch.get_alpha(),
-                      'bounds': ax.get_position().bounds,
-                      'xgrid': bool(ax.xaxis._gridOnMajor
-                                    and ax.xaxis.get_gridlines()),
-                      'xgridstyle': utils.get_grid_style(ax, 'x'),
-                      'ygridstyle': utils.get_grid_style(ax, 'y'),
-                      'ygrid': bool(ax.yaxis._gridOnMajor
-                                    and ax.yaxis.get_gridlines()),
-                      'dynamic': ax.get_navigate(),
-                      'axes': [utils.get_axis_properties(ax.xaxis),
-                               utils.get_axis_properties(ax.yaxis)]}
-
-        with self.renderer.draw_axes(ax, properties):
+        with self.renderer.draw_axes(ax, utils.get_axes_properties(ax)):
             for line in ax.lines:
                 self.draw_line(ax, line)
             for text in ax.texts:
