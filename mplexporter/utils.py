@@ -39,7 +39,20 @@ LINESTYLES = many_to_one({('solid', '-', (None, None)): "10,0",
 
 
 def get_dasharray(obj, i=None):
-    """Get an SVG dash array for the given matplotlib linestyle"""
+    """Get an SVG dash array for the given matplotlib linestyle
+
+    Parameters
+    ----------
+    obj : matplotlib object
+        The matplotlib line or path object, which must have a get_linestyle()
+        method which returns a valid matplotlib line code
+    i : integer (optional)
+
+    Returns
+    -------
+    dasharray : string
+        The HTML/SVG dasharray code associated with the object.
+    """
     if obj.__dict__.get('_dashSeq', None) is not None:
         return ','.join(map(str, obj._dashSeq))
     else:
@@ -165,6 +178,7 @@ def get_text_style(text):
 
 
 def get_axis_properties(axis):
+    """Return the property dictionary for a matplotlib.Axis instance"""
     props = {}
     label1On = axis._major_tick_kw.get('label1On', True)
 
@@ -214,7 +228,7 @@ def image_to_base64(image):
     Returns
     -------
     image_base64 : string
-        The base64 string representation of the image.
+        The UTF8-encoded base64 string representation of the png image.
     """
     ax = image.axes
     binary_buffer = io.BytesIO()

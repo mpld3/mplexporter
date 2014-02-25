@@ -1,9 +1,3 @@
-"""
-Matplotlib Renderer
-===================
-This submodule contains renderer objects which define renderer behavior used
-within the Exporter class.
-"""
 import warnings
 import itertools
 from contextlib import contextmanager
@@ -66,15 +60,51 @@ class Renderer(object):
     # Following are the functions which should be overloaded in subclasses
 
     def open_figure(self, fig, properties):
+        """
+        Begin commands for a particular figure.
+
+        Parameters
+        ----------
+        fig : matplotlib.Figure
+            The Figure which will contain the ensuing axes and elements
+        properties : dictionary
+            The dictionary of figure properties
+        """
         pass
 
     def close_figure(self, fig):
+        """
+        Finish commands for a particular figure.
+
+        Parameters
+        ----------
+        fig : matplotlib.Figure
+            The figure which is finished being drawn.
+        """
         pass
 
     def open_axes(self, ax, properties):
+        """
+        Begin commands for a particular axes.
+
+        Parameters
+        ----------
+        ax : matplotlib.Axes
+            The Axes which will contain the ensuing axes and elements
+        properties : dictionary
+            The dictionary of axes properties
+        """
         pass
 
     def close_axes(self, ax):
+        """
+        Finish commands for a particular axes.
+
+        Parameters
+        ----------
+        ax : matplotlib.Axes
+            The Axes which is finished being drawn.
+        """
         pass
 
     def draw_line(self, data, coordinates, style, mplobj=None):
@@ -104,7 +134,8 @@ class Renderer(object):
         pathstyle['edgewidth'] = pathstyle.pop('linewidth')
         self.draw_path(data, coordinates, pathcodes, pathstyle, mplobj=mplobj)
 
-    def _iter_path_collection(self, paths, path_transforms, offsets, styles):
+    @staticmethod
+    def _iter_path_collection(paths, path_transforms, offsets, styles):
         """Build an iterator over the elements of the path collection"""
         N = max(len(paths), len(offsets))
 
