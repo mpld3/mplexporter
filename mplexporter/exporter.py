@@ -7,6 +7,8 @@ relevant pieces to a renderer.
 import io
 from . import utils
 
+import matplotlib
+
 
 class Exporter(object):
     """Matplotlib Exporter
@@ -126,19 +128,18 @@ class Exporter(object):
             for line in ax.lines:
                 self.draw_line(ax, line)
             for text in ax.texts:
-                # xlabel and ylabel are passed as arguments to the axes
-                # we don't want to pass them again here
-                if text is ax.xaxis.label:
-                    continue
-                if text is ax.yaxis.label:
-                    continue
                 self.draw_text(ax, text)
+            for artist in ax.artists:
+                # TODO: process other artists
+                if isinstance(artist, matplotlib.text.Text):
+                    self.draw_text(ax, artist)
             for patch in ax.patches:
                 self.draw_patch(ax, patch)
             for collection in ax.collections:
                 self.draw_collection(ax, collection)
             for image in ax.images:
                 self.draw_image(ax, image)
+                
 
     def draw_line(self, ax, line):
         """Process a matplotlib line and call renderer.draw_line"""
