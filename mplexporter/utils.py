@@ -221,12 +221,15 @@ def get_axis_properties(axis):
 
 def get_grid_style(ax, grid_type='x'):
     gridlines = getattr(ax, grid_type + 'axis').get_gridlines()
-    color = color_to_hex(gridlines[0].get_color())
-    alpha = gridlines[0].get_alpha()
-    dasharray = get_dasharray(gridlines[0])
-    return dict(color=color,
-                dasharray=dasharray,
-                alpha=alpha)
+    if len(gridlines) > 0:
+        color = color_to_hex(gridlines[0].get_color())
+        alpha = gridlines[0].get_alpha()
+        dasharray = get_dasharray(gridlines[0])
+        return dict(color=color,
+                    dasharray=dasharray,
+                    alpha=alpha)
+    else:
+        return {}
 
 
 def image_to_base64(image):
