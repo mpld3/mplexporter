@@ -58,17 +58,23 @@ class Exporter(object):
         Returns
         -------
         code : string
-            Code is either "data" or "figure", indicating data coordinates
-            or figure coordinates.
+            Code is either "data", "figure", or "points", indicating data
+            coordinates, figure coordinates, or raw point coordinates
         new_data : ndarray
-            Data transformed to either "data" or "figure" coordinates.
+            Data transformed to match the given coordinate code.
             Returned only if data is specified
         """
-        if ax is not None and transform.contains_branch(ax.transData):
+        if ax is None:
+            code = "figure"
+        elif transform.contains_branch(ax.transData):
             code = "data"
             transform = (transform - ax.transData)
-        else:
+        elif transform.contains_branch(ax.transAxes):
             code = "figure"
+        elif transform.contains_branch(ax.figure.transFigure):
+            code = "figure"
+        else:
+            code = "points"
 
         if data is not None:
             if return_trans:
@@ -222,6 +228,7 @@ class Exporter(object):
             offset_coordinates, offsets = self._process_transform(transOffset,
                                                                   ax,
                                                                   offsets)
+
             processed_paths = [utils.SVG_path(path) for path in paths]
             path_coordinates, tr = self._process_transform(transform, ax,
                                                            return_trans=True)

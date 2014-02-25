@@ -7,7 +7,10 @@ within the Exporter class.
 import warnings
 import itertools
 from contextlib import contextmanager
+
+import numpy as np
 from matplotlib import transforms
+
 from .. import utils
 
 
@@ -108,10 +111,16 @@ class Renderer(object):
         if not path_transforms:
             path_transforms = [np.eye(3)]
 
+        edgecolor = styles['edgecolor']
+        if np.size(edgecolor) == 0:
+            edgecolor = ['none']
+        facecolor = styles['facecolor']
+        if np.size(facecolor) == 0:
+            facecolor = ['none']
+
         elements = [paths, path_transforms, offsets,
-                    styles['edgecolor'],
-                    styles['linewidth'],
-                    styles['facecolor']]
+                    edgecolor, styles['linewidth'], facecolor]
+
         it = itertools
         return it.islice(it.izip(*it.imap(it.cycle, elements)), N)
 
@@ -173,7 +182,9 @@ class Renderer(object):
             style={"edgecolor":utils.color_to_hex(ec),
                    "facecolor":utils.color_to_hex(fc),
                    "edgewidth":lw,
-                   "dasharray":"10,0", "alpha":styles['alpha']}
+                   "dasharray":"10,0",
+                   "alpha":styles['alpha'],
+                   "zorder":styles['zorder']}
             self.draw_path(vertices, path_coordinates, pathcodes, style,
                            offset, offset_coordinates, mplobj=mplobj)
 
