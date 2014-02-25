@@ -22,8 +22,8 @@ class ExampleRenderer(Renderer):
     def close_axes(self, ax):
         self.output += "  closing axes\n"
 
-    def draw_line(self, data, coordinates, style):
+    def draw_line(self, data, coordinates, style, mplobj=None):
         self.output += "    draw line with {0} points\n".format(data.shape[0])
 
-    def draw_markers(self, data, coordinates, style):
+    def draw_markers(self, data, coordinates, style, mplobj=None):
         self.output += "    draw {0} markers\n".format(data.shape[0])

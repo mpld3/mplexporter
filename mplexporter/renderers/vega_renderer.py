@@ -33,7 +33,7 @@ class VegaRenderer(Renderer):
                             range="height",
                         ),]
 
-    def draw_line(self, data, coordinates, style):
+    def draw_line(self, data, coordinates, style, mplobj=None):
         if coordinates != 'data':
             warnings.warn("Only data coordinates supported. Skipping this")
         dataname = "table{0:03d}".format(len(self.data) + 1)
@@ -55,7 +55,7 @@ class VegaRenderer(Renderer):
                            }
                        })
 
-    def draw_markers(self, data, coordinates, style):
+    def draw_markers(self, data, coordinates, style, mplobj=None):
         if coordinates != 'data':
             warnings.warn("Only data coordinates supported. Skipping this")
         dataname = "table{0:03d}".format(len(self.data) + 1)
