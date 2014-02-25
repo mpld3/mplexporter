@@ -26,7 +26,6 @@ class PlotlyRenderer(Renderer):
 
     def close_figure(self, fig):
         self.output += "closing figure\n"
-        self.configure_subplots()
         self.configure_primary_axes()  # changes 'y1', 'xaxis1', etc. to 'y', 'xaxis', etc.
         self.layout['showlegend'] = False
 
@@ -38,13 +37,16 @@ class PlotlyRenderer(Renderer):
             'xaxis{}'.format(self.axis_ct): {
                 'range': properties['xlim'],
                 'title': properties['xlabel'],
-                'showgrid': properties['xgrid']
+                'showgrid': properties['xgrid'],
+                'domain': plotly_utils.get_x_domain(properties['bounds']),
+                'anchor': 'y{}'.format(self.axis_ct)
             },
             'yaxis{}'.format(self.axis_ct): {
-                'domain': [0,1],
                 'range': properties['ylim'],
                 'title': properties['ylabel'],
                 'showgrid': properties['ygrid'],
+                'domain': plotly_utils.get_y_domain(properties['bounds']),
+                'anchor': 'x{}'.format(self.axis_ct)
             }
         }
         for key, value in layout.items():
@@ -97,25 +99,17 @@ class PlotlyRenderer(Renderer):
         else:
             self.output += "    received {} markers with 'figure' coordinates, skipping!".format(data.shape[0])
 
-    def configure_subplots(self):
-        num_plots = self.axis_ct
-        if num_plots > 1:
-            spacing = 0.3/num_plots # magic numbers! change this!
-            plot_dim = (1 - spacing*(num_plots-1))/num_plots
-            for subplot_num in range(0, num_plots):
-                domain_end = 1 - (plot_dim + spacing)*subplot_num
-                domain_start = domain_end - plot_dim
-                if domain_start < 0:
-                    domain_start = 0
-                self.layout['yaxis{}'.format(subplot_num + 1)]['domain'] = [domain_start, domain_end]
-                self.layout['xaxis{}'.format(subplot_num + 1)]['anchor'] = 'y{}'.format(subplot_num + 1)
-
     def configure_primary_axes(self):
-        for trace in self.data:
-            if trace['xaxis'] == 'x1':
-                trace['xaxis'] = 'x'
-            if trace['yaxis'] == 'y1':
-                trace['yaxis'] = 'y'
+        try:
+            for axis_no in range(0, len(self.data)):
+                if self.data[axis_no]['xaxis'] == 'x1':
+                    del self.data[axis_no]['xaxis']
+                if self.data[axis_no]['yaxis'] == 'y1':
+                    del self.data[axis_no]['yaxis']
+        except KeyError:
+            pass
+        except IndexError:
+            pass
         if 'xaxis1' in self.layout:
             self.layout['xaxis'] = self.layout.pop('xaxis1')
         if 'yaxis1' in self.layout:
