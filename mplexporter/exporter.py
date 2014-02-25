@@ -5,11 +5,8 @@ This submodule contains tools for crawling a matplotlib figure and exporting
 relevant pieces to a renderer.
 """
 import io
-import base64
 from . import utils
 
-import matplotlib
-from matplotlib import ticker
 
 class Exporter(object):
     """Matplotlib Exporter
@@ -17,8 +14,9 @@ class Exporter(object):
     Parameters
     ----------
     renderer : Renderer object
-        The render processes the Exporter output to create a visualization of
-        a figure.
+        The renderer object called by the exporter to create a figure
+        visualization.  See mplexporter.Renderer for information on the
+        methods which should be defined within the renderer.
     close_mpl : bool
         If True (default), close the matplotlib figure as it is rendered. This
         is useful for when the exporter is used within the notebook, or with
@@ -30,16 +28,24 @@ class Exporter(object):
         self.renderer = renderer
 
     def run(self, fig):
+        """
+        Run the exporter on the given figure
+
+        Parmeters
+        ---------
+        fig : matplotlib.Figure instance
+            The figure to export
+        """
         # Calling savefig executes the draw() command, putting elements
         # in the correct place.
         fig.savefig(io.BytesIO(), format='png', dpi=fig.dpi)
         if self.close_mpl:
             import matplotlib.pyplot as plt
             plt.close(fig)
-        self._crawl_fig(fig)
+        self.crawl_fig(fig)
 
     @staticmethod
-    def _process_transform(transform, ax=None, data=None, return_trans=False):
+    def process_transform(transform, ax=None, data=None, return_trans=False):
         """Process the transform and convert data to figure or data coordinates
 
         Parameters
@@ -81,76 +87,23 @@ class Exporter(object):
                 return code, transform.transform(data), transform
             else:
                 return code, transform.transform(data)
-            
         else:
             if return_trans:
                 return code, transform
             else:
                 return code
 
-    @staticmethod
-    def image_base64_data(image):
-        ax = image.axes
-        binary_buffer = io.BytesIO()
-
-        # image is saved in axes coordinates: we need to temporarily
-        # set the correct limits to get the correct image, then undo it.
-        xlim = ax.get_xlim()
-        ylim = ax.get_ylim()
-        ax.set_xlim(image.get_extent()[:2])
-        ax.set_ylim(image.get_extent()[2:])
-        image.write_png(binary_buffer)
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        binary_buffer.seek(0)
-        return base64.b64encode(binary_buffer.read()).decode('utf-8')
-
-    def _crawl_fig(self, fig):
+    def crawl_fig(self, fig):
+        """Crawl the figure and process all axes"""
         properties = {'figwidth': fig.get_figwidth(),
                       'figheight': fig.get_figheight(),
                       'dpi': fig.dpi}
         with self.renderer.draw_figure(fig, properties):
             for ax in fig.axes:
-                self._crawl_ax(ax)
+                self.crawl_ax(ax)
 
-    def _axis_props(self, axis):
-        props = {}
-        label1On = axis._major_tick_kw.get('label1On', True)
-
-        if isinstance(axis, matplotlib.axis.XAxis):
-            if label1On:
-                props['position'] = "bottom"
-            else:
-                props['position'] = "top"
-        elif isinstance(axis, matplotlib.axis.YAxis):
-            if label1On:
-                props['position'] = "left"
-            else:
-                props['position'] = "right"
-        else:
-            raise ValueError("{0} should be an Axis instance".format(axis))
-
-        props['nticks'] = len(axis.get_major_locator()())
-
-        # Use tick values if appropriate
-        locator = axis.get_major_locator()
-        if isinstance(locator, ticker.FixedLocator):
-            props['tickvalues'] = list(locator())
-        else:
-            props['tickvalues'] = None
-
-        # Find tick formats
-        formatter = axis.get_major_formatter()
-        if isinstance(formatter, ticker.NullFormatter):
-            props['tickformat'] = ""
-        elif not any(label.get_visible() for label in axis.get_ticklabels()):
-            props['tickformat'] = ""
-        else:
-            props['tickformat'] = None
-
-        return props
-
-    def _crawl_ax(self, ax):
+    def crawl_ax(self, ax):
+        """Crawl the axes and process all elements within"""
         properties = {'xlim': ax.get_xlim(),
                       'ylim': ax.get_ylim(),
                       'xlabel': ax.get_xlabel(),
@@ -162,104 +115,107 @@ class Exporter(object):
                       'ygrid': bool(ax.yaxis._gridOnMajor
                                     and ax.yaxis.get_gridlines()),
                       'dynamic': ax.get_navigate(),
-                      'axes': [self._axis_props(ax.xaxis),
-                               self._axis_props(ax.yaxis)],
-                  }
+                      'axes': [utils.get_axis_properties(ax.xaxis),
+                               utils.get_axis_properties(ax.yaxis)]}
+
         with self.renderer.draw_axes(ax, properties):
-            self._extract_lines(ax)
-            self._extract_patches(ax)
-            self._extract_texts(ax)
-            self._extract_collections(ax)
-            self._extract_images(ax)
+            for line in ax.lines:
+                self.draw_line(ax, line)
+            for text in ax.texts:
+                # xlabel and ylabel are passed as arguments to the axes
+                # we don't want to pass them again here
+                if text is ax.xaxis.label:
+                    continue
+                if text is ax.yaxis.label:
+                    continue
+                self.draw_text(ax, text)
+            for patch in ax.patches:
+                self.draw_patch(ax, patch)
+            for collection in ax.collections:
+                self.draw_collection(ax, collection)
+            for image in ax.images:
+                self.draw_image(ax, image)
 
-    def _extract_lines(self, ax):
-        for line in ax.lines:
-            code, data = self._process_transform(line.get_transform(),
-                                                 ax, line.get_xydata())
-            linestyle = utils.get_line_style(line)
-            if linestyle['dasharray'] not in ['None', 'none', None]:
-                self.renderer.draw_line(data,
-                                        coordinates=code,
-                                        style=linestyle, mplobj=line)
+    def draw_line(self, ax, line):
+        """Process a matplotlib line and call renderer.draw_line"""
+        code, data = self.process_transform(line.get_transform(),
+                                            ax, line.get_xydata())
+        linestyle = utils.get_line_style(line)
+        if linestyle['dasharray'] not in ['None', 'none', None]:
+            self.renderer.draw_line(data,
+                                    coordinates=code,
+                                    style=linestyle, mplobj=line)
 
-            markerstyle = utils.get_marker_style(line)
-            if markerstyle['marker'] not in ['None', 'none', None]:
-                self.renderer.draw_markers(data,
-                                           coordinates=code,
-                                           style=markerstyle, mplobj=line)
+        markerstyle = utils.get_marker_style(line)
+        if markerstyle['marker'] not in ['None', 'none', None]:
+            self.renderer.draw_markers(data,
+                                       coordinates=code,
+                                       style=markerstyle, mplobj=line)
 
-    def _extract_texts(self, ax):
-        for text in ax.texts:
-            # xlabel and ylabel are passed as arguments to the axes
-            # we don't want to pass them again here
-            if text is ax.xaxis.label:
-                continue
-            if text is ax.yaxis.label:
-                continue
+    def draw_text(self, ax, text):
+        """Process a matplotlib text object and call renderer.draw_text"""
+        content = text.get_text()
+        if content:
+            transform = text.get_transform()
+            position = text.get_position()
+            code, position = self.process_transform(transform, ax,
+                                                    position)
+            style = utils.get_text_style(text)
+            self.renderer.draw_text(content, position, code,
+                                    style, mplobj=text)
 
-            content = text.get_text()
-            if content:
-                transform = text.get_transform()
-                position = text.get_position()
-                code, position = self._process_transform(transform, ax,
-                                                         position)
-                style = utils.get_text_style(text)
-                self.renderer.draw_text(content, position, code,
-                                        style, mplobj=text)
+    def draw_patch(self, ax, patch):
+        """Process a matplotlib patch object and call renderer.draw_path"""
+        vertices, pathcodes = utils.SVG_path(patch.get_path())
+        transform = patch.get_transform()
+        coordinates, vertices = self.process_transform(transform,
+                                                       ax, vertices)
+        linestyle = utils.get_path_style(patch)
+        self.renderer.draw_path(vertices,
+                                coordinates=coordinates,
+                                pathcodes=pathcodes,
+                                style=linestyle,
+                                mplobj=patch)
 
-    def _extract_patches(self, ax):
-        for patch in ax.patches:
-            vertices, pathcodes = utils.SVG_path(patch.get_path())
-            transform = patch.get_transform()
-            coordinates, vertices = self._process_transform(transform,
-                                                            ax, vertices)
-            linestyle = utils.get_path_style(patch)
-            self.renderer.draw_path(vertices,
-                                    coordinates=coordinates,
-                                    pathcodes=pathcodes,
-                                    style=linestyle,
-                                    mplobj=patch)
+    def draw_collection(self, ax, collection):
+        """Process a matplotlib collection and call renderer.draw_collection"""
+        (transform, transOffset,
+         offsets, paths) = collection._prepare_points()
 
-    def _extract_collections(self, ax):
-        for collection in ax.collections:
-            (transform, transOffset,
-             offsets, paths) = collection._prepare_points()
+        offset_coordinates, offsets = self.process_transform(transOffset,
+                                                             ax,
+                                                             offsets)
 
-            offset_coordinates, offsets = self._process_transform(transOffset,
-                                                                  ax,
-                                                                  offsets)
+        processed_paths = [utils.SVG_path(path) for path in paths]
+        path_coordinates, tr = self.process_transform(transform, ax,
+                                                      return_trans=True)
+        processed_paths = [(tr.transform(path[0]), path[1])
+                           for path in processed_paths]
+        path_transforms = collection.get_transforms()
+        styles = {'linewidth': collection.get_linewidths(),
+                  'facecolor': collection.get_facecolors(),
+                  'edgecolor': collection.get_edgecolors(),
+                  'alpha': collection._alpha,
+                  'zorder': collection.get_zorder()}
 
-            processed_paths = [utils.SVG_path(path) for path in paths]
-            path_coordinates, tr = self._process_transform(transform, ax,
-                                                           return_trans=True)
-            processed_paths = [(tr.transform(path[0]), path[1])
-                               for path in processed_paths]
-            path_transforms = collection.get_transforms()
-            styles = {'linewidth':collection.get_linewidths(),
-                      'facecolor':collection.get_facecolors(),
-                      'edgecolor':collection.get_edgecolors(),
-                      'alpha':collection._alpha,
-                      'zorder':collection.get_zorder()}
+        offset_dict = {"data": "before",
+                       "screen": "after"}
+        offset_order = offset_dict[collection.get_offset_position()]
 
-            offset_dict = {"data": "before",
-                           "screen": "after"}
-            offset_order = offset_dict[collection.get_offset_position()]
+        self.renderer.draw_path_collection(processed_paths,
+                                           path_coordinates,
+                                           path_transforms,
+                                           offsets,
+                                           offset_coordinates,
+                                           offset_order,
+                                           styles,
+                                           mplobj=collection)
 
-            self.renderer.draw_path_collection(processed_paths,
-                                               path_coordinates,
-                                               path_transforms,
-                                               offsets,
-                                               offset_coordinates,
-                                               offset_order,
-                                               styles,
-                                               mplobj=collection)
-
-    def _extract_images(self, ax):
-        for image in ax.images:
-            imdata = self.image_base64_data(image)
-            self.renderer.draw_image(imdata=self.image_base64_data(image),
-                                     extent=image.get_extent(),
-                                     coordinates="data",
-                                     style={"alpha": image.get_alpha(),
-                                            "zorder": image.get_zorder()},
-                                     mplobj=image)
+    def draw_image(self, ax, image):
+        """Process a matplotlib image object and call renderer.draw_image"""
+        self.renderer.draw_image(imdata=utils.image_to_base64(image),
+                                 extent=image.get_extent(),
+                                 coordinates="data",
+                                 style={"alpha": image.get_alpha(),
+                                        "zorder": image.get_zorder()},
+                                 mplobj=image)

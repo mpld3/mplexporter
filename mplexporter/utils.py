@@ -3,13 +3,17 @@ Utility Routines for Working with Matplotlib Objects
 ====================================================
 """
 import itertools
+import io
+import base64
 
 import numpy as np
 
+import matplotlib
 from matplotlib.colors import colorConverter
 from matplotlib.path import Path
 from matplotlib.markers import MarkerStyle
 from matplotlib.transforms import Affine2D
+from matplotlib import ticker
 
 
 def color_to_hex(color):
@@ -158,3 +162,69 @@ def get_text_style(text):
     style['rotation'] = text.get_rotation()
     style['zorder'] = text.get_zorder()
     return style
+
+
+def get_axis_properties(axis):
+    props = {}
+    label1On = axis._major_tick_kw.get('label1On', True)
+
+    if isinstance(axis, matplotlib.axis.XAxis):
+        if label1On:
+            props['position'] = "bottom"
+        else:
+            props['position'] = "top"
+    elif isinstance(axis, matplotlib.axis.YAxis):
+        if label1On:
+            props['position'] = "left"
+        else:
+            props['position'] = "right"
+    else:
+        raise ValueError("{0} should be an Axis instance".format(axis))
+
+    props['nticks'] = len(axis.get_major_locator()())
+
+    # Use tick values if appropriate
+    locator = axis.get_major_locator()
+    if isinstance(locator, ticker.FixedLocator):
+        props['tickvalues'] = list(locator())
+    else:
+        props['tickvalues'] = None
+
+    # Find tick formats
+    formatter = axis.get_major_formatter()
+    if isinstance(formatter, ticker.NullFormatter):
+        props['tickformat'] = ""
+    elif not any(label.get_visible() for label in axis.get_ticklabels()):
+        props['tickformat'] = ""
+    else:
+        props['tickformat'] = None
+
+    return props
+
+
+def image_to_base64(image):
+    """
+    Convert a matplotlib image to a base64 png representation
+
+    Parameters
+    ----------
+    image : matplotlib image object
+        The image to be converted.
+
+    Returns
+    -------
+    image_base64 : string
+        The base64 string representation of the image.
+    """
+    ax = image.axes
+    binary_buffer = io.BytesIO()
+
+    # image is saved in axes coordinates: we need to temporarily
+    # set the correct limits to get the correct image
+    lim = ax.axis()
+    ax.axis(image.get_extent())
+    image.write_png(binary_buffer)
+    ax.axis(lim)
+
+    binary_buffer.seek(0)
+    return base64.b64encode(binary_buffer.read()).decode('utf-8')

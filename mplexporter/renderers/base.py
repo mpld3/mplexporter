@@ -179,12 +179,12 @@ class Renderer(object):
             # This is a hack:
             if path_coordinates == "figure":
                 path_coordinates = "points"
-            style={"edgecolor":utils.color_to_hex(ec),
-                   "facecolor":utils.color_to_hex(fc),
-                   "edgewidth":lw,
-                   "dasharray":"10,0",
-                   "alpha":styles['alpha'],
-                   "zorder":styles['zorder']}
+            style = {"edgecolor": utils.color_to_hex(ec),
+                     "facecolor": utils.color_to_hex(fc),
+                     "edgewidth": lw,
+                     "dasharray": "10,0",
+                     "alpha": styles['alpha'],
+                     "zorder": styles['zorder']}
             self.draw_path(vertices, path_coordinates, pathcodes, style,
                            offset, offset_coordinates, mplobj=mplobj)
 
