@@ -261,9 +261,9 @@ def get_axes_properties(ax):
         lim = domain
         if isinstance(axis.converter, matplotlib.dates.DateConverter):
             scale = 'date'
-            domain = ["new Date{0}".format((d.year, d.month - 1, d.day,
-                                            d.hour, d.minute, d.second,
-                                            d.microsecond * 1E-3))
+            domain = [(d.year, d.month - 1, d.day,
+                       d.hour, d.minute, d.second,
+                       d.microsecond * 1E-3)
                       for d in matplotlib.dates.num2date(domain)]
         else:
             scale = axis.get_scale()
