@@ -1,6 +1,7 @@
 from mplexporter.renderers import PlotlyRenderer, fig_to_plotly
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 username = 'IPython.Demo'
 api_key = '1fw3zw2o13'
 
@@ -35,21 +36,19 @@ def two_plots():
 
 
 def four_plots():
-    plt.figure(1)
-    plt.subplot(411)
-    plt.plot([1,2,3],[4,5,6], 'k-', label='first')
-    plt.xlabel('x1')
-    plt.subplot(412)
-    plt.plot([1,2,3],[3,6,2], 'b--', label='second')
-    plt.xlabel('x2')
-    plt.subplot(413)
-    plt.plot([10,11,12,13], [1,0,1,0], 'g-.', label='third')
-    plt.xlabel('x3')
-    plt.subplot(414)
-    plt.plot([20,21,22,23], [0,1,0,1], 'r-', label = 'fourth')
-    plt.xlabel('x4')
-    plt.title('four subplots')
-    fig = plt.gcf()
+    fig = plt.figure() # matplotlib.figure.Figure obj
+    gs = gridspec.GridSpec(3, 3)
+    ax1 = fig.add_subplot(gs[0,:])
+    ax1.plot([1,2,3,4,5], [10,5,10,5,10], 'r-')
+    ax2 = fig.add_subplot(gs[1,:-1])
+    ax2.plot([1,2,3,4], [1,4,9,16], 'k-')
+    ax3 = fig.add_subplot(gs[1:, 2])
+    ax3.plot([1,2,3,4], [1,10,100,1000], 'b-')
+    ax4 = fig.add_subplot(gs[2,0])
+    ax4.plot([1,2,3,4], [0,0,1,1], 'g-')
+    ax5 = fig.add_subplot(gs[2,1])
+    ax5.plot([1,2,3,4], [1,0,0,1], 'c-')
+    gs.update(hspace=0.5, wspace=0.5)
     fig_to_plotly(fig, username, api_key)
 
 if __name__ == '__main__':
