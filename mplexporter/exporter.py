@@ -170,7 +170,7 @@ class Exporter(object):
         transform = patch.get_transform()
         coordinates, vertices = self.process_transform(transform,
                                                        ax, vertices)
-        linestyle = utils.get_path_style(patch)
+        linestyle = utils.get_path_style(patch, fill=patch.get_fill())
         self.renderer.draw_path(vertices,
                                 coordinates=coordinates,
                                 pathcodes=pathcodes,
