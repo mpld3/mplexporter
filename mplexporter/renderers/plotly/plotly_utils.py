@@ -4,11 +4,20 @@ def convert_symbol(mpl_symbol):
     else:
         return 'dot'  # default
 
+
 def convert_dash(mpl_dash):
     if mpl_dash in dash_map:
         return dash_map[mpl_dash]
     else:
         return 'solid'  # default
+
+
+def get_x_domain(bounds):
+    return [bounds[0], bounds[0] + bounds[2]]
+
+
+def get_y_domain(bounds):
+    return [bounds[1], bounds[1] + bounds[3]]
 
 
 dash_map = {
