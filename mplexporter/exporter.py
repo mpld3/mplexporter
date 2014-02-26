@@ -4,6 +4,7 @@ Matplotlib Exporter
 This submodule contains tools for crawling a matplotlib figure and exporting
 relevant pieces to a renderer.
 """
+import warnings
 import io
 from . import utils
 
@@ -118,6 +119,22 @@ class Exporter(object):
                 self.draw_collection(ax, collection)
             for image in ax.images:
                 self.draw_image(ax, image)
+            if ax.legend_ is not None:
+                for child in ax.legend_.get_children()[:-1]:
+                    if isinstance(child, matplotlib.patches.Patch):
+                        self.draw_patch(ax, child)
+                for child in ax.legend_.get_children():
+                    if isinstance(child, matplotlib.text.Text):
+                        if not (child is ax.legend_.get_children()[-1]
+                                and child.get_text() == 'None'):
+                            self.draw_text(ax, child)
+                    elif isinstance(child, matplotlib.patches.Patch):
+                        pass
+                    elif isinstance(child, matplotlib.lines.Line2D):
+                        self.draw_line(ax, child)
+                    else:
+                        warnings.warn("Ignoring legend element: "
+                                      "{0}".format(child))
                 
 
     def draw_line(self, ax, line):
