@@ -34,32 +34,32 @@ class Renderer(object):
         return self.ax_has_ygrid(self._current_ax)
 
     @contextmanager
-    def draw_figure(self, fig, properties):
+    def draw_figure(self, fig, props):
         if hasattr(self, "_current_fig") and self._current_fig is not None:
             warnings.warn("figure embedded in figure: something is wrong")
         self._current_fig = fig
-        self._fig_properties = properties
-        self.open_figure(fig, properties)
+        self._fig_props = props
+        self.open_figure(fig=fig, props=props)
         yield
-        self.close_figure(fig)
+        self.close_figure(fig=fig)
         self._current_fig = None
-        self._fig_properties = {}
+        self._fig_props = {}
 
     @contextmanager
-    def draw_axes(self, ax, properties):
+    def draw_axes(self, ax, props):
         if hasattr(self, "_current_ax") and self._current_ax is not None:
             warnings.warn("axes embedded in axes: something is wrong")
         self._current_ax = ax
-        self._ax_properties = properties
-        self.open_axes(ax, properties)
+        self._ax_props = props
+        self.open_axes(ax=ax, props=props)
         yield
-        self.close_axes(ax)
+        self.close_axes(ax=ax)
         self._current_ax = None
-        self._ax_properties = {}
+        self._ax_props = {}
 
     # Following are the functions which should be overloaded in subclasses
 
-    def open_figure(self, fig, properties):
+    def open_figure(self, fig, props):
         """
         Begin commands for a particular figure.
 
@@ -67,7 +67,7 @@ class Renderer(object):
         ----------
         fig : matplotlib.Figure
             The Figure which will contain the ensuing axes and elements
-        properties : dictionary
+        props : dictionary
             The dictionary of figure properties
         """
         pass
@@ -83,7 +83,7 @@ class Renderer(object):
         """
         pass
 
-    def open_axes(self, ax, properties):
+    def open_axes(self, ax, props):
         """
         Begin commands for a particular axes.
 
@@ -91,7 +91,7 @@ class Renderer(object):
         ----------
         ax : matplotlib.Axes
             The Axes which will contain the ensuing axes and elements
-        properties : dictionary
+        props : dictionary
             The dictionary of axes properties
         """
         pass
@@ -132,7 +132,8 @@ class Renderer(object):
         pathstyle = dict(facecolor='none', **style)
         pathstyle['edgecolor'] = pathstyle.pop('color')
         pathstyle['edgewidth'] = pathstyle.pop('linewidth')
-        self.draw_path(data, coordinates, pathcodes, pathstyle, mplobj=mplobj)
+        self.draw_path(data=data, coordinates=coordinates,
+                       pathcodes=pathcodes, style=pathstyle, mplobj=mplobj)
 
     @staticmethod
     def _iter_path_collection(paths, path_transforms, offsets, styles):
@@ -216,8 +217,10 @@ class Renderer(object):
                      "dasharray": "10,0",
                      "alpha": styles['alpha'],
                      "zorder": styles['zorder']}
-            self.draw_path(vertices, path_coordinates, pathcodes, style,
-                           offset, offset_coordinates, mplobj=mplobj)
+            self.draw_path(data=vertices, coordinates=path_coordinates,
+                           pathcodes=pathcodes, style=style, offset=offset,
+                           offset_coordinates=offset_coordinates,
+                           mplobj=mplobj)
 
     def draw_markers(self, data, coordinates, style, mplobj=None):
         """
@@ -245,8 +248,10 @@ class Renderer(object):
                                                        'edgewidth'])
         pathstyle['dasharray'] = "10,0"
         for vertex in data:
-            self.draw_path(vertices, "points", pathcodes, pathstyle,
-                           vertex, coordinates, mplobj=mplobj)
+            self.draw_path(data=vertices, coordinates="points",
+                           pathcodes=pathcodes, style=pathstyle,
+                           offset=vertex, offset_coordinates=coordinates,
+                           mplobj=mplobj)
 
     def draw_text(self, text, position, coordinates, style, mplobj=None):
         """

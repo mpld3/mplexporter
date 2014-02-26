@@ -98,13 +98,15 @@ class Exporter(object):
 
     def crawl_fig(self, fig):
         """Crawl the figure and process all axes"""
-        with self.renderer.draw_figure(fig, utils.get_figure_properties(fig)):
+        with self.renderer.draw_figure(fig=fig,
+                                       props=utils.get_figure_properties(fig)):
             for ax in fig.axes:
                 self.crawl_ax(ax)
 
     def crawl_ax(self, ax):
         """Crawl the axes and process all elements within"""
-        with self.renderer.draw_axes(ax, utils.get_axes_properties(ax)):
+        with self.renderer.draw_axes(ax=ax,
+                                     props=utils.get_axes_properties(ax)):
             for line in ax.lines:
                 self.draw_line(ax, line)
             for text in ax.texts:
@@ -139,18 +141,18 @@ class Exporter(object):
 
     def draw_line(self, ax, line):
         """Process a matplotlib line and call renderer.draw_line"""
-        code, data = self.process_transform(line.get_transform(),
-                                            ax, line.get_xydata())
+        coordinates, data = self.process_transform(line.get_transform(),
+                                                    ax, line.get_xydata())
         linestyle = utils.get_line_style(line)
         if linestyle['dasharray'] not in ['None', 'none', None]:
-            self.renderer.draw_line(data,
-                                    coordinates=code,
+            self.renderer.draw_line(data=data,
+                                    coordinates=coordinates,
                                     style=linestyle, mplobj=line)
 
         markerstyle = utils.get_marker_style(line)
         if markerstyle['marker'] not in ['None', 'none', None]:
-            self.renderer.draw_markers(data,
-                                       coordinates=code,
+            self.renderer.draw_markers(data=data,
+                                       coordinates=coordinates,
                                        style=markerstyle, mplobj=line)
 
     def draw_text(self, ax, text):
@@ -159,11 +161,12 @@ class Exporter(object):
         if content:
             transform = text.get_transform()
             position = text.get_position()
-            code, position = self.process_transform(transform, ax,
-                                                    position)
+            coordinates, position = self.process_transform(transform, ax,
+                                                           position)
             style = utils.get_text_style(text)
-            self.renderer.draw_text(content, position, code,
-                                    style, mplobj=text)
+            self.renderer.draw_text(text=content, position=position,
+                                    coordinates=coordinates,
+                                    style=style, mplobj=text)
 
     def draw_patch(self, ax, patch):
         """Process a matplotlib patch object and call renderer.draw_path"""
@@ -172,7 +175,7 @@ class Exporter(object):
         coordinates, vertices = self.process_transform(transform,
                                                        ax, vertices)
         linestyle = utils.get_path_style(patch, fill=patch.get_fill())
-        self.renderer.draw_path(vertices,
+        self.renderer.draw_path(data=vertices,
                                 coordinates=coordinates,
                                 pathcodes=pathcodes,
                                 style=linestyle,
@@ -183,13 +186,13 @@ class Exporter(object):
         (transform, transOffset,
          offsets, paths) = collection._prepare_points()
 
-        offset_coordinates, offsets = self.process_transform(transOffset,
-                                                             ax,
-                                                             offsets)
+        offset_coords, offsets = self.process_transform(transOffset,
+                                                        ax,
+                                                        offsets)
 
         processed_paths = [utils.SVG_path(path) for path in paths]
-        path_coordinates, tr = self.process_transform(transform, ax,
-                                                      return_trans=True)
+        path_coords, tr = self.process_transform(transform, ax,
+                                                 return_trans=True)
         processed_paths = [(tr.transform(path[0]), path[1])
                            for path in processed_paths]
         path_transforms = collection.get_transforms()
@@ -203,13 +206,13 @@ class Exporter(object):
                        "screen": "after"}
         offset_order = offset_dict[collection.get_offset_position()]
 
-        self.renderer.draw_path_collection(processed_paths,
-                                           path_coordinates,
-                                           path_transforms,
-                                           offsets,
-                                           offset_coordinates,
-                                           offset_order,
-                                           styles,
+        self.renderer.draw_path_collection(paths=processed_paths,
+                                           path_coordinates=path_coords,
+                                           path_transforms=path_transforms,
+                                           offsets=offsets,
+                                           offset_coordinates=offset_coords,
+                                           offset_order=offset_order,
+                                           styles=styles,
                                            mplobj=collection)
 
     def draw_image(self, ax, image):
