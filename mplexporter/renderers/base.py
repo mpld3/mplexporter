@@ -241,7 +241,7 @@ class Renderer(object):
         """
         vertices, pathcodes = style['markerpath']
         pathstyle = dict((key, style[key]) for key in ['alpha', 'edgecolor',
-                                                       'facecolor',
+                                                       'facecolor', 'zorder',
                                                        'edgewidth'])
         pathstyle['dasharray'] = "10,0"
         for vertex in data:
