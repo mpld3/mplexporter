@@ -19,33 +19,33 @@ class PlotlyRenderer(Renderer):
         self.layout = {}
         self.axis_ct = 0
 
-    def open_figure(self, fig, properties):
+    def open_figure(self, fig, props):
         self.output += "opening figure\n"
-        self.layout['width'] = int(properties['figwidth']*properties['dpi'])
-        self.layout['height'] = int(properties['figheight']*properties['dpi'])
+        self.layout['width'] = int(props['figwidth']*props['dpi'])
+        self.layout['height'] = int(props['figheight']*props['dpi'])
 
     def close_figure(self, fig):
         self.output += "closing figure\n"
         self.configure_primary_axes()  # changes 'y1', 'xaxis1', etc. to 'y', 'xaxis', etc.
         self.layout['showlegend'] = False
 
-    def open_axes(self, ax, properties):
+    def open_axes(self, ax, props):
         self.axis_ct += 1
         self.output += "  opening axis {}\n".format(self.axis_ct)
         layout = {
-            'title': properties['title'],
+            'title': props['title'],
             'xaxis{}'.format(self.axis_ct): {
-                'range': properties['xlim'],
-                'title': properties['xlabel'],
-                'showgrid': properties['xgrid'],
-                'domain': plotly_utils.get_x_domain(properties['bounds']),
+                'range': props['xlim'],
+                'title': props['xlabel'],
+                'showgrid': props['xgrid'],
+                'domain': plotly_utils.get_x_domain(props['bounds']),
                 'anchor': 'y{}'.format(self.axis_ct)
             },
             'yaxis{}'.format(self.axis_ct): {
-                'range': properties['ylim'],
-                'title': properties['ylabel'],
-                'showgrid': properties['ygrid'],
-                'domain': plotly_utils.get_y_domain(properties['bounds']),
+                'range': props['ylim'],
+                'title': props['ylabel'],
+                'showgrid': props['ygrid'],
+                'domain': plotly_utils.get_y_domain(props['bounds']),
                 'anchor': 'x{}'.format(self.axis_ct)
             }
         }

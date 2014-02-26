@@ -6,29 +6,29 @@ from ..exporter import Exporter
 
 
 class VegaRenderer(Renderer):
-    def open_figure(self, fig, properties):
-        self.properties = properties
-        self.figwidth = int(properties['figwidth'] * properties['dpi'])
-        self.figheight = int(properties['figheight'] * properties['dpi'])
+    def open_figure(self, fig, props):
+        self.props = props
+        self.figwidth = int(props['figwidth'] * props['dpi'])
+        self.figheight = int(props['figheight'] * props['dpi'])
         self.data = []
         self.scales = []
         self.axes = []
         self.marks = []
             
-    def open_axes(self, ax, properties):
+    def open_axes(self, ax, props):
         if len(self.axes) > 0:
             warnings.warn("multiple axes not yet supported")
         self.axes = [dict(type="x", scale="x", ticks=10,
-                          title=properties['xlabel']),
+                          title=props['xlabel']),
                      dict(type="y", scale="y", ticks=10,
-                          title=properties['ylabel'])]
+                          title=props['ylabel'])]
         self.scales = [dict(name="x",
-                            domain=properties['xlim'],
+                            domain=props['xlim'],
                             type="linear",
                             range="width",
                         ),
                        dict(name="y",
-                            domain=properties['ylim'],
+                            domain=props['ylim'],
                             type="linear",
                             range="height",
                         ),]

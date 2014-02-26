@@ -4,10 +4,10 @@ from ..exporter import Exporter
 
 
 class VincentRenderer(Renderer):
-    def open_figure(self, fig, properties):
+    def open_figure(self, fig, props):
         self.chart = None
-        self.figwidth = int(properties['figwidth'] * properties['dpi'])
-        self.figheight = int(properties['figheight'] * properties['dpi'])
+        self.figwidth = int(props['figwidth'] * props['dpi'])
+        self.figheight = int(props['figheight'] * props['dpi'])
 
     def draw_line(self, data, coordinates, style, mplobj=None):
         import vincent  # only import if VincentRenderer is used
