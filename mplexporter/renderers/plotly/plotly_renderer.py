@@ -26,54 +26,103 @@ class PlotlyRenderer(Renderer):
 
     def close_figure(self, fig):
         self.output += "closing figure\n"
+        self.configure_primary_axes()  # changes 'y1', 'xaxis1', etc. to 'y', 'xaxis', etc.
+        self.layout['showlegend'] = False
 
     def open_axes(self, ax, properties):
-        self.output += "  opening axes\n"
         self.axis_ct += 1
-        layout = {}
-        layout['title'] = properties['title']
-        xaxis = {}
-        xaxis['range'] = properties['xlim']
-        xaxis['title'] = properties['xlabel']
-        xaxis['showgrid'] = properties['xgrid']
-        yaxis = {}
-        yaxis['range'] = properties['ylim']
-        yaxis['title'] = properties['ylabel']
-        yaxis['showgrid'] = properties['ygrid']
-        layout['xaxis'] = xaxis
-        layout['yaxis'] = yaxis
-        self.layout = layout
+        self.output += "  opening axis {}\n".format(self.axis_ct)
+        layout = {
+            'title': properties['title'],
+            'xaxis{}'.format(self.axis_ct): {
+                'range': properties['xlim'],
+                'title': properties['xlabel'],
+                'showgrid': properties['xgrid'],
+                'domain': plotly_utils.get_x_domain(properties['bounds']),
+                'anchor': 'y{}'.format(self.axis_ct)
+            },
+            'yaxis{}'.format(self.axis_ct): {
+                'range': properties['ylim'],
+                'title': properties['ylabel'],
+                'showgrid': properties['ygrid'],
+                'domain': plotly_utils.get_y_domain(properties['bounds']),
+                'anchor': 'x{}'.format(self.axis_ct)
+            }
+        }
+        for key, value in layout.items():
+            self.layout[key] = value
 
     def close_axes(self, ax):
-        self.output += "  closing axes\n"
+        self.output += "  closing axis {}\n".format(self.axis_ct)
 
-    def draw_line(self, data, coordinates, style, mplobj=None):
-        self.output += "    draw line with {0} points\n".format(data.shape[0])
-        data_dict = {'x': [], 'y': []}
-        for xy_pair in data:
-            data_dict['x'] += [xy_pair[0]]
-            data_dict['y'] += [xy_pair[1]]
-        data_dict['mode'] = 'lines'
-        data_dict['line'] = {}
-        data_dict['line']['opacity'] = style['alpha']
-        data_dict['line']['width'] = style['linewidth']
-        data_dict['line']['dash'] = plotly_utils.convert_dash(style['dasharray'])
-        self.data += data_dict,
+    def draw_line(self, line, properties, mplobj=None):
+        if properties['coordinates'] == 'data':
+            self.output += "    draw line with {0} points\n".format(properties['data'].shape[0])
+            trace = {
+                'mode': 'lines',
+                'x': [xy_pair[0] for xy_pair in properties['data']],
+                'y': [xy_pair[1] for xy_pair in properties['data']],
+                'xaxis': 'x{}'.format(self.axis_ct),
+                'yaxis': 'y{}'.format(self.axis_ct),
+                'line': {
+                    'opacity': properties['style']['alpha'],
+                    'color': properties['style']['color'],
+                    'width': properties['style']['linewidth'],
+                    'dash': plotly_utils.convert_dash(properties['style']['dasharray'])
+                }
+            }
+            self.data += trace,
 
-    def draw_markers(self, data, coordinates, style, mplobj=None):
-        self.output += "    draw {0} markers\n".format(data.shape[0])
-        data_dict = {'x': [], 'y': []}
-        for xy_pair in data:
-            data_dict['x'] += [xy_pair[0]]
-            data_dict['y'] += [xy_pair[1]]
-        data_dict['mode'] = 'markers'
-        data_dict['marker'] = {}
-        data_dict['marker']['opacity'] = style['alpha']
-        data_dict['marker']['color'] = style['facecolor']
-        # need to incorporate style['edgecolor']
-        data_dict['marker']['symbol'] = plotly_utils.convert_symbol(style['marker'])
-        # not sure whether we need to incorporate style['markerpath']
-        self.data += data_dict,
+    def draw_text(self, text, position, coordinates, style, mplobj=None):
+        pass
+
+    def draw_markers(self, line, properties, mplobj=None):
+        if properties['coordinates'] == 'data':
+            self.output += "    draw {0} markers\n".format(properties['data'].shape[0])
+            trace = {
+                'mode': 'markers',
+                'x': [xy_pair[0] for xy_pair in properties['data']],
+                'y': [xy_pair[1] for xy_pair in properties['data']],
+                'xaxis': 'x{}'.format(self.axis_ct),
+                'yaxis': 'y{}'.format(self.axis_ct),
+                'marker': {
+                    'opacity': properties['style']['alpha'],
+                    'color': properties['style']['facecolor'],
+                    'symbol': plotly_utils.convert_symbol(properties['style']['marker']),
+                    'line': {
+                        'color': properties['style']['edgecolor'],
+                        'width': properties['style']['edgewidth']
+                    }
+                }
+            }
+            # not sure whether we need to incorporate style['markerpath']
+            self.data += trace,
+
+    def configure_primary_axes(self):
+        try:
+            for axis_no in range(0, len(self.data)):
+                if self.data[axis_no]['xaxis'] == 'x1':
+                    del self.data[axis_no]['xaxis']
+                if self.data[axis_no]['yaxis'] == 'y1':
+                    del self.data[axis_no]['yaxis']
+        except KeyError:
+            pass
+        except IndexError:
+            pass
+        if 'xaxis1' in self.layout:
+            self.layout['xaxis'] = self.layout.pop('xaxis1')
+        if 'yaxis1' in self.layout:
+            self.layout['yaxis'] = self.layout.pop('yaxis1')
+        try:
+            if 'y1' in self.layout['xaxis']['anchor']:
+                self.layout['xaxis']['anchor'] = 'y'
+        except KeyError:
+            pass
+        try:
+            if 'x1' in self.layout['yaxis']['anchor']:
+                self.layout['yaxis']['anchor'] = 'x'
+        except KeyError:
+            pass
 
 
 def fig_to_plotly(fig, username=None, api_key=None, notebook=False):
