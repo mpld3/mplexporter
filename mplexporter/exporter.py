@@ -63,35 +63,34 @@ class Exporter(object):
 
         Returns
         -------
-        code : string
-            Code is either "data", "figure", or "points", indicating data
-            coordinates, figure coordinates, or raw point coordinates
-        new_data : ndarray
-            Data transformed to match the given coordinate code.
-            Returned only if data is specified
+        properties : dict
+            coordinates : string
+                Coordinates is either "data", "axes", "figure", or "points", indicating data
+                axes, figure, or raw point coordinates
+            new_data : ndarray
+                Data transformed to match the given coordinates.
+                Returned only if data is specified
         """
+        properties = {}
         if ax is None:
-            code = "figure"
+            coordinates = "figure"
         elif transform.contains_branch(ax.transData):
-            code = "data"
+            coordinates = "data"
             transform = (transform - ax.transData)
         elif transform.contains_branch(ax.transAxes):
-            code = "figure"
+            coordinates = "figure"
         elif transform.contains_branch(ax.figure.transFigure):
-            code = "figure"
+            coordinates = "figure"
         else:
-            code = "points"
+            coordinates = "points"
+        properties['coordinates'] = coordinates
 
         if data is not None:
-            if return_trans:
-                return code, transform.transform(data), transform
-            else:
-                return code, transform.transform(data)
-        else:
-            if return_trans:
-                return code, transform
-            else:
-                return code
+            properties['data'] = transform.transform(data)
+        if return_trans:
+            properties['transform'] = transform
+
+        return properties
 
     def crawl_fig(self, fig):
         """Crawl the figure and process all axes"""
@@ -138,19 +137,15 @@ class Exporter(object):
 
     def draw_line(self, ax, line):
         """Process a matplotlib line and call renderer.draw_line"""
-        code, data = self.process_transform(line.get_transform(),
+        properties = self.process_transform(line.get_transform(),
                                             ax, line.get_xydata())
-        linestyle = utils.get_line_style(line)
-        if linestyle['dasharray'] not in ['None', 'none', None]:
-            self.renderer.draw_line(data,
-                                    coordinates=code,
-                                    style=linestyle, mplobj=line)
-
-        markerstyle = utils.get_marker_style(line)
-        if markerstyle['marker'] not in ['None', 'none', None]:
-            self.renderer.draw_markers(data,
-                                       coordinates=code,
-                                       style=markerstyle, mplobj=line)
+        properties['linelabel'] = line.get_label()
+        if line.get_linestyle() not in ['None', 'none', None]:
+            properties['style'] = utils.get_line_style(line)
+            self.renderer.draw_line(line, properties, mplobj=line)
+        if line.get_marker() not in ['None', 'none', None]:
+            properties['style'] = utils.get_marker_style(line)
+            self.renderer.draw_markers(line, properties, line, mplobj=line)
 
     def draw_text(self, ax, text):
         """Process a matplotlib text object and call renderer.draw_text"""

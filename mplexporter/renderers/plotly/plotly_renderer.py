@@ -55,49 +55,48 @@ class PlotlyRenderer(Renderer):
     def close_axes(self, ax):
         self.output += "  closing axis {}\n".format(self.axis_ct)
 
-    def draw_line(self, data, coordinates, style, mplobj=None):
-        if coordinates == 'data':
-            self.output += "    draw line with {0} points\n".format(data.shape[0])
+    def draw_line(self, line, properties, mplobj=None):
+        if properties['coordinates'] == 'data':
+            self.output += "    draw line with {0} points\n".format(properties['data'].shape[0])
             trace = {
                 'mode': 'lines',
-                'x': [xy_pair[0] for xy_pair in data],
-                'y': [xy_pair[1] for xy_pair in data],
+                'x': [xy_pair[0] for xy_pair in properties['data']],
+                'y': [xy_pair[1] for xy_pair in properties['data']],
                 'xaxis': 'x{}'.format(self.axis_ct),
                 'yaxis': 'y{}'.format(self.axis_ct),
                 'line': {
-                    'opacity': style['alpha'],
-                    'color': style['color'],
-                    'width': style['linewidth'],
-                    'dash': plotly_utils.convert_dash(style['dasharray'])
+                    'opacity': properties['style']['alpha'],
+                    'color': properties['style']['color'],
+                    'width': properties['style']['linewidth'],
+                    'dash': plotly_utils.convert_dash(properties['style']['dasharray'])
                 }
             }
             self.data += trace,
-        else:
-            self.output += "    received {}-point line with 'figure' coordinates, skipping!".format(data.shape[0])
 
-    def draw_markers(self, data, coordinates, style, mplobj=None):
-        if coordinates == 'data':
-            self.output += "    draw {0} markers\n".format(data.shape[0])
+    def draw_text(self, text, position, coordinates, style, mplobj=None):
+        pass
+
+    def draw_markers(self, line, properties, mplobj=None):
+        if properties['coordinates'] == 'data':
+            self.output += "    draw {0} markers\n".format(properties['data'].shape[0])
             trace = {
                 'mode': 'markers',
-                'x': [xy_pair[0] for xy_pair in data],
-                'y': [xy_pair[1] for xy_pair in data],
+                'x': [xy_pair[0] for xy_pair in properties['data']],
+                'y': [xy_pair[1] for xy_pair in properties['data']],
                 'xaxis': 'x{}'.format(self.axis_ct),
                 'yaxis': 'y{}'.format(self.axis_ct),
                 'marker': {
-                    'opacity': style['alpha'],
-                    'color': style['facecolor'],
-                    'symbol': plotly_utils.convert_symbol(style['marker']),
+                    'opacity': properties['style']['alpha'],
+                    'color': properties['style']['facecolor'],
+                    'symbol': plotly_utils.convert_symbol(properties['style']['marker']),
                     'line': {
-                        'color': style['edgecolor'],
-                        'width': style['edgewidth']
+                        'color': properties['style']['edgecolor'],
+                        'width': properties['style']['edgewidth']
                     }
                 }
             }
             # not sure whether we need to incorporate style['markerpath']
             self.data += trace,
-        else:
-            self.output += "    received {} markers with 'figure' coordinates, skipping!".format(data.shape[0])
 
     def configure_primary_axes(self):
         try:
