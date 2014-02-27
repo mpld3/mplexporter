@@ -3,8 +3,6 @@ Plotly Renderer
 ================
 This is a renderer class to be used with an exporter for rendering plots in Plotly!
 """
-import plotly
-
 from . import plotly_utils
 from .. base import Renderer
 from ... exporter import Exporter
@@ -130,6 +128,7 @@ def fig_to_plotly(fig, username=None, api_key=None, notebook=False):
     """Convert a matplotlib figure to plotly dictionary
 
     """
+    import plotly
     renderer = PlotlyRenderer(username=username, api_key=api_key)
     Exporter(renderer).run(fig)
     py = plotly.plotly(renderer.username, renderer.api_key)
