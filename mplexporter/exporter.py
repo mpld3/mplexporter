@@ -121,23 +121,27 @@ class Exporter(object):
                 self.draw_collection(ax, collection)
             for image in ax.images:
                 self.draw_image(ax, image)
-            if ax.legend_ is not None:
-                for child in ax.legend_.get_children()[:-1]:
-                    if isinstance(child, matplotlib.patches.Patch):
-                        self.draw_patch(ax, child)
-                for child in ax.legend_.get_children():
-                    if isinstance(child, matplotlib.text.Text):
-                        if not (child is ax.legend_.get_children()[-1]
-                                and child.get_text() == 'None'):
-                            self.draw_text(ax, child)
-                    elif isinstance(child, matplotlib.patches.Patch):
-                        pass
-                    elif isinstance(child, matplotlib.lines.Line2D):
-                        self.draw_line(ax, child)
-                    else:
-                        warnings.warn("Ignoring legend element: "
-                                      "{0}".format(child))
-                
+
+            # TODO: figure out how to specify legends appropriately...
+
+            #legend = ax.get_legend()
+            #if legend is not None:
+            #    for child in ax.legend_.get_children():
+            #        if child is legend.legendPatch:
+            #            self.draw_patch(ax, child)
+            #        if isinstance(child, matplotlib.patches.Patch):
+            #            self.draw_patch(ax, child)
+            #        elif isinstance(child, matplotlib.text.Text):
+            #            if not (child is ax.legend_.get_children()[-1]
+            #                    and child.get_text() == 'None'):
+            #                self.draw_text(ax, child)
+            #        elif isinstance(child, matplotlib.lines.Line2D):
+            #            self.draw_line(ax, child)
+            #        elif isinstance(child, matplotlib.offsetbox.PackerBase):
+            #            pass
+            #        else:
+            #            warnings.warn("Legend element %s not impemented"
+            #                          & child)
 
     def draw_line(self, ax, line):
         """Process a matplotlib line and call renderer.draw_line"""
