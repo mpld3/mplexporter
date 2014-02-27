@@ -20,6 +20,22 @@ def get_y_domain(bounds):
     return [bounds[1], bounds[1] + bounds[3]]
 
 
+def clean_dict(node, parent=None, node_key=None):
+    del_keys = []
+    for key, item in node.items():
+        if isinstance(item, dict):
+            clean_dict(item, node, key)
+        else:
+            if item in [None, 'none', 'None']:
+                del_keys += [key]
+    for key in del_keys:
+        del node[key]
+    if parent is not None:
+        if len(node) == 0:
+            del parent[node_key]
+
+
+
 dash_map = {
     '10,0': 'solid',
     '6,6': 'dash',

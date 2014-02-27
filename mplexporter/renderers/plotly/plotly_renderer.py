@@ -27,6 +27,9 @@ class PlotlyRenderer(Renderer):
     def close_figure(self, fig):
         self.output += "closing figure\n"
         self.configure_primary_axes()  # changes 'y1', 'xaxis1', etc. to 'y', 'xaxis', etc.
+        for data_dict in self.data:
+            plotly_utils.clean_dict(data_dict)
+        plotly_utils.clean_dict(self.layout)
         self.layout['showlegend'] = False
 
     def open_axes(self, ax, props):
@@ -100,16 +103,11 @@ class PlotlyRenderer(Renderer):
             self.output += "    received {} markers with 'figure' coordinates, skipping!".format(data.shape[0])
 
     def configure_primary_axes(self):
-        try:
-            for axis_no in range(0, len(self.data)):
-                if self.data[axis_no]['xaxis'] == 'x1':
-                    del self.data[axis_no]['xaxis']
-                if self.data[axis_no]['yaxis'] == 'y1':
-                    del self.data[axis_no]['yaxis']
-        except KeyError:
-            pass
-        except IndexError:
-            pass
+        for data_dict in self.data:
+            if 'xaxis' in data_dict and data_dict['xaxis'] == 'x1':
+                del data_dict['xaxis']
+            if 'yaxis' in data_dict and data_dict['yaxis'] == 'y1':
+                del data_dict['yaxis']
         if 'xaxis1' in self.layout:
             self.layout['xaxis'] = self.layout.pop('xaxis1')
         if 'yaxis1' in self.layout:
@@ -124,7 +122,6 @@ class PlotlyRenderer(Renderer):
                 self.layout['yaxis']['anchor'] = 'x'
         except KeyError:
             pass
-
 
 def fig_to_plotly(fig, username=None, api_key=None, notebook=False):
     """Convert a matplotlib figure to plotly dictionary
