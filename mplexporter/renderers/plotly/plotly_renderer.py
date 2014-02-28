@@ -26,9 +26,15 @@ class PlotlyRenderer(Renderer):
 
     def close_figure(self, fig):
         self.output += "closing figure\n"
-        self.configure_primary_axes()  # changes 'y1', 'xaxis1', etc. to 'y', 'xaxis', etc.
+        plotly_utils.repair_data(self.data)
+        plotly_utils.repair_layout(self.layout)
         for data_dict in self.data:
             plotly_utils.clean_dict(data_dict)
+        try:
+            for annotation_dict in self.layout['annotations']:
+                plotly_utils.clean_dict(annotation_dict)
+        except KeyError:
+            pass
         plotly_utils.clean_dict(self.layout)
         self.layout['showlegend'] = False
 
@@ -102,26 +108,20 @@ class PlotlyRenderer(Renderer):
         else:
             self.output += "    received {} markers with 'figure' coordinates, skipping!".format(data.shape[0])
 
-    def configure_primary_axes(self):
-        for data_dict in self.data:
-            if 'xaxis' in data_dict and data_dict['xaxis'] == 'x1':
-                del data_dict['xaxis']
-            if 'yaxis' in data_dict and data_dict['yaxis'] == 'y1':
-                del data_dict['yaxis']
-        if 'xaxis1' in self.layout:
-            self.layout['xaxis'] = self.layout.pop('xaxis1')
-        if 'yaxis1' in self.layout:
-            self.layout['yaxis'] = self.layout.pop('yaxis1')
-        try:
-            if 'y1' in self.layout['xaxis']['anchor']:
-                self.layout['xaxis']['anchor'] = 'y'
-        except KeyError:
-            pass
-        try:
-            if 'x1' in self.layout['yaxis']['anchor']:
-                self.layout['yaxis']['anchor'] = 'x'
-        except KeyError:
-            pass
+    def draw_text(self, **props):
+        if 'annotations' not in self.layout:
+            self.layout['annotations'] = []
+        print 'new annotation: ', props['text']
+        annotation = {
+            'text': props['text'],
+            'font': {'color': props['style']['color'], 'size': props['style']['fontsize']},
+            'xref': 'x{}'.format(self.axis_ct),
+            'yref': 'y{}'.format(self.axis_ct)
+        }
+        print 'adding annotation dict:\n', annotation
+        self.layout['annotations'] += annotation,
+        # position=position, coordinates=coordinates, style=style, mplobj=text)
+
 
 def fig_to_plotly(fig, username=None, api_key=None, notebook=False):
     """Convert a matplotlib figure to plotly dictionary
