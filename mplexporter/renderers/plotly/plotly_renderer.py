@@ -4,6 +4,7 @@ Plotly Renderer
 This is a renderer class to be used with an exporter for rendering plots in Plotly!
 """
 import plotly
+import matplotlib
 
 from . import plotly_utils
 from .. base import Renderer
@@ -58,6 +59,24 @@ class PlotlyRenderer(Renderer):
                 'anchor': 'x{}'.format(self.axis_ct)
             }
         }
+        if layout['xaxis{}'.format(self.axis_ct)]['title'] not in [None, 'None', 'none', '']:
+            children = ax.xaxis.get_children()
+            for child in children:
+                if isinstance(child, matplotlib.text.Text):
+                    if child.get_text() == layout['xaxis{}'.format(self.axis_ct)]['title']:
+                        titlefont = {
+                            'size': child.get_size()
+                        }
+                        layout['xaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
+        if layout['yaxis{}'.format(self.axis_ct)]['title'] not in [None, 'None', 'none', '']:
+            children = ax.yaxis.get_children()
+            for child in children:
+                if isinstance(child, matplotlib.text.Text):
+                    if child.get_text() == layout['yaxis{}'.format(self.axis_ct)]['title']:
+                        titlefont = {
+                            'size': child.get_size()
+                        }
+                        layout['yaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
         for key, value in layout.items():
             self.layout[key] = value
 
@@ -111,8 +130,6 @@ class PlotlyRenderer(Renderer):
     def draw_text(self, **props):
         if 'annotations' not in self.layout:
             self.layout['annotations'] = []
-        print 'new annotation: ', props['text']
-        print 'coordinates: ', props['coordinates']
         annotation = {
             'text': props['text'],
             'font': {'color': props['style']['color'], 'size': props['style']['fontsize']},
@@ -128,7 +145,6 @@ class PlotlyRenderer(Renderer):
         if props['coordinates'] == 'figure':
             data_pos = self._current_ax.transFigure.inverted().transform(props['position'])
             annotation['x'], annotation['y'] = data_pos[0], data_pos[1]
-        print 'adding annotation dict:\n', annotation
         self.layout['annotations'] += annotation,
         # position=position, coordinates=coordinates, style=style, mplobj=text)
 
