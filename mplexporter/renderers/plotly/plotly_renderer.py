@@ -112,12 +112,22 @@ class PlotlyRenderer(Renderer):
         if 'annotations' not in self.layout:
             self.layout['annotations'] = []
         print 'new annotation: ', props['text']
+        print 'coordinates: ', props['coordinates']
         annotation = {
             'text': props['text'],
             'font': {'color': props['style']['color'], 'size': props['style']['fontsize']},
             'xref': 'x{}'.format(self.axis_ct),
-            'yref': 'y{}'.format(self.axis_ct)
+            'yref': 'y{}'.format(self.axis_ct),
+            'x': props['position'][0],
+            'y': props['position'][1],
+            'showarrow': False  # change this later?
         }
+        if props['coordinates'] == 'points':
+            data_pos = self._current_ax.transData.inverted().transform(props['position'])
+            annotation['x'], annotation['y'] = data_pos[0], data_pos[1]
+        if props['coordinates'] == 'figure':
+            data_pos = self._current_ax.transFigure.inverted().transform(props['position'])
+            annotation['x'], annotation['y'] = data_pos[0], data_pos[1]
         print 'adding annotation dict:\n', annotation
         self.layout['annotations'] += annotation,
         # position=position, coordinates=coordinates, style=style, mplobj=text)
