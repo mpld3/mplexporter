@@ -123,9 +123,11 @@ class Exporter(object):
                 self.draw_line(ax, line)
             for text in ax.texts:
                 self.draw_text(ax, text)
-            for text in [ax.xaxis.label, ax.yaxis.label, ax.title]:
+            for (text, ttp) in zip([ax.xaxis.label, ax.yaxis.label, ax.title],
+                                   ["xlabel", "ylabel", "title"]):
                 if(hasattr(text, 'get_text') and text.get_text()):
-                    self.draw_text(ax, text, force_trans=ax.transAxes)
+                    self.draw_text(ax, text, force_trans=ax.transAxes,
+                                   text_type=ttp)
             for artist in ax.artists:
                 # TODO: process other artists
                 if isinstance(artist, matplotlib.text.Text):
@@ -174,7 +176,7 @@ class Exporter(object):
                                            coordinates=coordinates,
                                            style=markerstyle, mplobj=line)
 
-    def draw_text(self, ax, text, force_trans=None):
+    def draw_text(self, ax, text, force_trans=None, text_type=None):
         """Process a matplotlib text object and call renderer.draw_text"""
         content = text.get_text()
         if content:
@@ -186,6 +188,7 @@ class Exporter(object):
             style = utils.get_text_style(text)
             self.renderer.draw_text(text=content, position=position,
                                     coordinates=coords,
+                                    text_type=text_type,
                                     style=style, mplobj=text)
 
     def draw_patch(self, ax, patch, force_trans=None):
