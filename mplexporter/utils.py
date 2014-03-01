@@ -242,10 +242,7 @@ def get_figure_properties(fig):
 
 
 def get_axes_properties(ax):
-    props = {'xlabel': ax.get_xlabel(),
-             'ylabel': ax.get_ylabel(),
-             'title': ax.get_title(),
-             'axesbg': color_to_hex(ax.patch.get_facecolor()),
+    props = {'axesbg': color_to_hex(ax.patch.get_facecolor()),
              'axesbgalpha': ax.patch.get_alpha(),
              'bounds': ax.get_position().bounds,
              'dynamic': ax.get_navigate(),

@@ -123,6 +123,9 @@ class Exporter(object):
                 self.draw_line(ax, line)
             for text in ax.texts:
                 self.draw_text(ax, text)
+            for text in [ax.xaxis.label, ax.yaxis.label, ax.title]:
+                if(hasattr(text, 'get_text') and text.get_text()):
+                    self.draw_text(ax, text, force_trans=ax.transAxes)
             for artist in ax.artists:
                 # TODO: process other artists
                 if isinstance(artist, matplotlib.text.Text):
