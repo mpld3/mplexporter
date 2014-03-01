@@ -198,10 +198,9 @@ def get_axis_properties(axis):
     else:
         raise ValueError("{0} should be an Axis instance".format(axis))
 
-    props['nticks'] = len(axis.get_major_locator()())
-
     # Use tick values if appropriate
     locator = axis.get_major_locator()
+    props['nticks'] = len(locator())
     if isinstance(locator, ticker.FixedLocator):
         props['tickvalues'] = list(locator())
     else:
@@ -216,20 +215,24 @@ def get_axis_properties(axis):
     else:
         props['tickformat'] = None
 
+    # Get associated grid
+    props['grid'] = get_grid_style(axis)
+
     return props
 
 
-def get_grid_style(ax, grid_type='x'):
-    gridlines = getattr(ax, grid_type + 'axis').get_gridlines()
-    if len(gridlines) > 0:
+def get_grid_style(axis):
+    gridlines = axis.get_gridlines()
+    if axis._gridOnMajor and len(gridlines) > 0:
         color = color_to_hex(gridlines[0].get_color())
         alpha = gridlines[0].get_alpha()
         dasharray = get_dasharray(gridlines[0])
-        return dict(color=color,
+        return dict(gridOn=True,
+                    color=color,
                     dasharray=dasharray,
                     alpha=alpha)
     else:
-        return {}
+        return {"gridOn":False}
 
 
 def get_figure_properties(fig):
@@ -245,12 +248,6 @@ def get_axes_properties(ax):
              'axesbg': color_to_hex(ax.patch.get_facecolor()),
              'axesbgalpha': ax.patch.get_alpha(),
              'bounds': ax.get_position().bounds,
-             'xgrid': bool(ax.xaxis._gridOnMajor
-                           and ax.xaxis.get_gridlines()),
-             'xgridstyle': get_grid_style(ax, 'x'),
-             'ygridstyle': get_grid_style(ax, 'y'),
-             'ygrid': bool(ax.yaxis._gridOnMajor
-                           and ax.yaxis.get_gridlines()),
              'dynamic': ax.get_navigate(),
              'axes': [get_axis_properties(ax.xaxis),
                       get_axis_properties(ax.yaxis)]}
