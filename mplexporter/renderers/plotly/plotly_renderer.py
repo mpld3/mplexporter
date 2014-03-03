@@ -9,7 +9,6 @@ Attributes:
     fig_to_plotly -- a function to send an mpl figure to Plotly
 
 """
-
 from . import plotly_utils
 from .. base import Renderer
 from ... import utils

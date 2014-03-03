@@ -253,7 +253,8 @@ class Renderer(object):
                            offset=vertex, offset_coordinates=coordinates,
                            mplobj=mplobj)
 
-    def draw_text(self, text, position, coordinates, style, mplobj=None):
+    def draw_text(self, text, position, coordinates, style,
+                  text_type=None, mplobj=None):
         """
         Draw text on the image.
 
@@ -268,6 +269,8 @@ class Renderer(object):
             or 'figure' for figure (pixel) coordinates.
         style : dictionary
             a dictionary specifying the appearance of the text.
+        text_type : string or None
+            if specified, a type of text such as "xlabel", "ylabel", "title"
         mplobj : matplotlib object
             the matplotlib plot element which generated this text
         """

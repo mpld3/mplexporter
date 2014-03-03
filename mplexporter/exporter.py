@@ -9,6 +9,7 @@ import io
 from . import utils
 
 import matplotlib
+from matplotlib import transforms
 
 
 class Exporter(object):
@@ -48,42 +49,53 @@ class Exporter(object):
         self.crawl_fig(fig)
 
     @staticmethod
-    def process_transform(transform, ax=None, data=None, return_trans=False):
+    def process_transform(transform, ax=None, data=None, return_trans=False,
+                          force_trans=None):
         """Process the transform and convert data to figure or data coordinates
 
         Parameters
         ----------
         transform : matplotlib Transform object
             The transform applied to the data
-
         ax : matplotlib Axes object (optional)
             The axes the data is associated with
-
         data : ndarray (optional)
             The array of data to be transformed.
-
         return_trans : bool (optional)
+            If true, return the final transform of the data
+        force_trans : matplotlib.transform instance (optional)
+            If supplied, first force the data to this transform
 
         Returns
         -------
         code : string
-            Code is either "data", "figure", or "points", indicating data
-            coordinates, figure coordinates, or raw point coordinates
+            Code is either "data", "axes", "figure", or "display", indicating
+            the type of coordinates output.
+        transform : matplotlib transform
+            the transform used to map input data to output data.
+            Returned only if return_trans is True
         new_data : ndarray
             Data transformed to match the given coordinate code.
             Returned only if data is specified
         """
-        if ax is None:
-            code = "figure"
-        elif transform.contains_branch(ax.transData):
-            code = "data"
-            transform = (transform - ax.transData)
-        elif transform.contains_branch(ax.transAxes):
-            code = "figure"
-        elif transform.contains_branch(ax.figure.transFigure):
-            code = "figure"
-        else:
-            code = "points"
+        if transform.contains_branch(transforms.BlendedGenericTransform):
+            warnings.warn("Blended transforms not yet supported. "
+                          "Zoom behavior may not work as expected.")
+
+        if force_trans is not None:
+            if data is not None:
+                data = (transform - force_trans).transform(data)
+            transform = force_trans
+
+        code = "display"
+        if ax is not None:
+            for (c, trans) in [("data", ax.transData),
+                               ("axes", ax.transAxes),
+                               ("figure", ax.figure.transFigure),
+                               ("display", transforms.IdentityTransform())]:
+                if transform.contains_branch(trans):
+                    code, transform = (c, transform - trans)
+                    break
 
         if data is not None:
             if return_trans:
@@ -111,6 +123,11 @@ class Exporter(object):
                 self.draw_line(ax, line)
             for text in ax.texts:
                 self.draw_text(ax, text)
+            for (text, ttp) in zip([ax.xaxis.label, ax.yaxis.label, ax.title],
+                                   ["xlabel", "ylabel", "title"]):
+                if(hasattr(text, 'get_text') and text.get_text()):
+                    self.draw_text(ax, text, force_trans=ax.transAxes,
+                                   text_type=ttp)
             for artist in ax.artists:
                 # TODO: process other artists
                 if isinstance(artist, matplotlib.text.Text):
@@ -122,31 +139,30 @@ class Exporter(object):
             for image in ax.images:
                 self.draw_image(ax, image)
 
-            # TODO: figure out how to specify legends appropriately...
+            legend = ax.get_legend()
+            if legend is not None:
+                for child in ax.legend_.get_children():
+                    # force a large zorder so it appears on top
+                    child.set_zorder(1E6 + child.get_zorder())
+                    if isinstance(child, matplotlib.patches.Patch):
+                        self.draw_patch(ax, child, force_trans=ax.transAxes)
+                    elif isinstance(child, matplotlib.text.Text):
+                        if not (child is ax.legend_.get_children()[-1]
+                                and child.get_text() == 'None'):
+                            self.draw_text(ax, child, force_trans=ax.transAxes)
+                    elif isinstance(child, matplotlib.lines.Line2D):
+                        self.draw_line(ax, child, force_trans=ax.transAxes)
+                    elif isinstance(child, matplotlib.offsetbox.PackerBase):
+                        pass
+                    else:
+                        warnings.warn("Legend element %s not impemented"
+                                      & child)
 
-            #legend = ax.get_legend()
-            #if legend is not None:
-            #    for child in ax.legend_.get_children():
-            #        if child is legend.legendPatch:
-            #            self.draw_patch(ax, child)
-            #        if isinstance(child, matplotlib.patches.Patch):
-            #            self.draw_patch(ax, child)
-            #        elif isinstance(child, matplotlib.text.Text):
-            #            if not (child is ax.legend_.get_children()[-1]
-            #                    and child.get_text() == 'None'):
-            #                self.draw_text(ax, child)
-            #        elif isinstance(child, matplotlib.lines.Line2D):
-            #            self.draw_line(ax, child)
-            #        elif isinstance(child, matplotlib.offsetbox.PackerBase):
-            #            pass
-            #        else:
-            #            warnings.warn("Legend element %s not impemented"
-            #                          & child)
-
-    def draw_line(self, ax, line):
+    def draw_line(self, ax, line, force_trans=None):
         """Process a matplotlib line and call renderer.draw_line"""
         coordinates, data = self.process_transform(line.get_transform(),
-                                                    ax, line.get_xydata())
+                                                   ax, line.get_xydata(),
+                                                   force_trans=force_trans)
         linestyle = utils.get_line_style(line)
         if linestyle['dasharray'] not in ['None', 'none', None]:
             self.renderer.draw_line(data=data,
@@ -155,29 +171,33 @@ class Exporter(object):
 
         markerstyle = utils.get_marker_style(line)
         if markerstyle['marker'] not in ['None', 'none', None]:
-            self.renderer.draw_markers(data=data,
-                                       coordinates=coordinates,
-                                       style=markerstyle, mplobj=line)
+            if markerstyle['markerpath'][0].size > 0:
+                self.renderer.draw_markers(data=data,
+                                           coordinates=coordinates,
+                                           style=markerstyle, mplobj=line)
 
-    def draw_text(self, ax, text):
+    def draw_text(self, ax, text, force_trans=None, text_type=None):
         """Process a matplotlib text object and call renderer.draw_text"""
         content = text.get_text()
         if content:
             transform = text.get_transform()
             position = text.get_position()
-            coordinates, position = self.process_transform(transform, ax,
-                                                           position)
+            coords, position = self.process_transform(transform, ax,
+                                                      position,
+                                                      force_trans=force_trans)
             style = utils.get_text_style(text)
             self.renderer.draw_text(text=content, position=position,
-                                    coordinates=coordinates,
+                                    coordinates=coords,
+                                    text_type=text_type,
                                     style=style, mplobj=text)
 
-    def draw_patch(self, ax, patch):
+    def draw_patch(self, ax, patch, force_trans=None):
         """Process a matplotlib patch object and call renderer.draw_path"""
         vertices, pathcodes = utils.SVG_path(patch.get_path())
         transform = patch.get_transform()
         coordinates, vertices = self.process_transform(transform,
-                                                       ax, vertices)
+                                                       ax, vertices,
+                                                       force_trans=force_trans)
         linestyle = utils.get_path_style(patch, fill=patch.get_fill())
         self.renderer.draw_path(data=vertices,
                                 coordinates=coordinates,
@@ -185,18 +205,20 @@ class Exporter(object):
                                 style=linestyle,
                                 mplobj=patch)
 
-    def draw_collection(self, ax, collection):
+    def draw_collection(self, ax, collection,
+                        force_pathtrans=None,
+                        force_offsettrans=None):
         """Process a matplotlib collection and call renderer.draw_collection"""
         (transform, transOffset,
          offsets, paths) = collection._prepare_points()
 
-        offset_coords, offsets = self.process_transform(transOffset,
-                                                        ax,
-                                                        offsets)
+        offset_coords, offsets = self.process_transform(
+            transOffset, ax, offsets, force_trans=force_offsettrans)
 
         processed_paths = [utils.SVG_path(path) for path in paths]
-        path_coords, tr = self.process_transform(transform, ax,
-                                                 return_trans=True)
+        path_coords, tr = self.process_transform(
+            transform, ax, return_trans=True, force_trans=force_pathtrans)
+
         processed_paths = [(tr.transform(path[0]), path[1])
                            for path in processed_paths]
         path_transforms = collection.get_transforms()
