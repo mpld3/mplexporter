@@ -113,30 +113,19 @@ class PlotlyRenderer(Renderer):
         """
         self.axis_ct += 1
         layout = {
-            # 'title': props['title'], # this will currently get overwritten!
             'xaxis{}'.format(self.axis_ct): {
                 'range': props['xlim'],
-                # 'title': props['xlabel'],
                 'showgrid': props['axes'][1]['grid']['gridOn'],
                 'domain': plotly_utils.get_x_domain(props['bounds']),
                 'anchor': 'y{}'.format(self.axis_ct)
             },
             'yaxis{}'.format(self.axis_ct): {
                 'range': props['ylim'],
-                # 'title': props['ylabel'],
                 'showgrid': props['axes'][0]['grid']['gridOn'],
                 'domain': plotly_utils.get_y_domain(props['bounds']),
                 'anchor': 'x{}'.format(self.axis_ct)
             }
         }
-        # if props['xlabel'] not in [None, 'None', 'none', '']:
-        #     style = utils.get_style(ax.xaxis.get_label())
-        #     titlefont = {'size': style['fontsize'], 'color': style['color']}
-        #     layout['xaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
-        # if props['ylabel'] not in [None, 'None', 'none', '']:
-        #     style = utils.get_style(ax.yaxis.get_label())
-        #     titlefont = {'size': style['fontsize'], 'color': style['color']}
-        #     layout['yaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
         for key, value in layout.items():
             self.layout[key] = value
 
@@ -260,7 +249,6 @@ class PlotlyRenderer(Renderer):
         Currently, titles are added as annotations.
 
         """
-        # put x and y into mpl's 'display' coordinates
         x_px, y_px = props['mplobj'].get_transform().transform(props[
             'position'])
         x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
