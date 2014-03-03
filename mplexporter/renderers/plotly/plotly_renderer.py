@@ -11,7 +11,6 @@ Attributes:
 """
 from . import plotly_utils
 from .. base import Renderer
-from ... import utils
 from ... exporter import Exporter
 
 
@@ -59,9 +58,18 @@ class PlotlyRenderer(Renderer):
         self.axis_ct = 0
 
     def open_figure(self, fig, props):
-        """Creates a new figure by beginning to fill out layout dict."""
+        """Creates a new figure by beginning to fill out layout dict.
+
+        Currently, margins are set to zero to reconcile differences between
+        mpl and plotly without complicated transforms. This will be changed
+        in future revisions. Autosize is set to false so that the figure will
+        mirror sizes set by mpl.
+
+        """
         self.layout['width'] = int(props['figwidth']*props['dpi'])
         self.layout['height'] = int(props['figheight']*props['dpi'])
+        self.layout['margin'] = {'l': 0, 'r': 0, 't': 0, 'b': 0, 'pad': 0}
+        self.layout['autosize'] = False
 
     def close_figure(self, fig):
         """Closes figure by cleaning up data and layout dictionaries.
@@ -105,30 +113,30 @@ class PlotlyRenderer(Renderer):
         """
         self.axis_ct += 1
         layout = {
-            'title': props['title'], # this will currently get overwritten!
+            # 'title': props['title'], # this will currently get overwritten!
             'xaxis{}'.format(self.axis_ct): {
                 'range': props['xlim'],
-                'title': props['xlabel'],
-                'showgrid': props['xgrid'],
+                # 'title': props['xlabel'],
+                'showgrid': props['axes'][1]['grid']['gridOn'],
                 'domain': plotly_utils.get_x_domain(props['bounds']),
                 'anchor': 'y{}'.format(self.axis_ct)
             },
             'yaxis{}'.format(self.axis_ct): {
                 'range': props['ylim'],
-                'title': props['ylabel'],
-                'showgrid': props['ygrid'],
+                # 'title': props['ylabel'],
+                'showgrid': props['axes'][0]['grid']['gridOn'],
                 'domain': plotly_utils.get_y_domain(props['bounds']),
                 'anchor': 'x{}'.format(self.axis_ct)
             }
         }
-        if props['xlabel'] not in [None, 'None', 'none', '']:
-            style = utils.get_style(ax.xaxis.get_label())
-            titlefont = {'size': style['fontsize'], 'color': style['color']}
-            layout['xaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
-        if props['ylabel'] not in [None, 'None', 'none', '']:
-            style = utils.get_style(ax.yaxis.get_label())
-            titlefont = {'size': style['fontsize'], 'color': style['color']}
-            layout['yaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
+        # if props['xlabel'] not in [None, 'None', 'none', '']:
+        #     style = utils.get_style(ax.xaxis.get_label())
+        #     titlefont = {'size': style['fontsize'], 'color': style['color']}
+        #     layout['xaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
+        # if props['ylabel'] not in [None, 'None', 'none', '']:
+        #     style = utils.get_style(ax.yaxis.get_label())
+        #     titlefont = {'size': style['fontsize'], 'color': style['color']}
+        #     layout['yaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
         for key, value in layout.items():
             self.layout[key] = value
 
@@ -216,22 +224,74 @@ class PlotlyRenderer(Renderer):
         """
         if 'annotations' not in self.layout:
             self.layout['annotations'] = []
+        if props['text_type'] == 'xlabel':
+            self.draw_xlabel(**props)
+        elif props['text_type'] == 'ylabel':
+            self.draw_ylabel(**props)
+        elif props['text_type'] == 'title':
+            self.draw_title(**props)
+        else:  # just a regular text annotation...
+            if True:  # props['coordinates'] is not 'data':
+                x_px, y_px = props['mplobj'].get_transform().transform(
+                    props['position'])
+                x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
+                xref = 'paper'
+                yref = 'paper'
+            else:
+                x, y = props['position']
+                xref = 'x{}'.format(self.axis_ct)
+                yref = 'y{}'.format(self.axis_ct)
+            annotation = {
+                'text': props['text'],
+                'x': x,
+                'y': y,
+                'xref': xref,
+                'yref': yref,
+                'font': {'color': props['style']['color'],
+                         'size': props['style']['fontsize']
+                },
+                'showarrow': False  # change this later?
+            }
+            self.layout['annotations'] += annotation,
+
+    def draw_title(self, **props):
+        """Add a title to the current subplot in layout dictionary.
+
+        Currently, titles are added as annotations.
+
+        """
+        # put x and y into mpl's 'display' coordinates
+        x_px, y_px = props['mplobj'].get_transform().transform(props[
+            'position'])
+        x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
         annotation = {
             'text': props['text'],
-            'font': {'color': props['style']['color'], 'size': props['style']['fontsize']},
-            'xref': 'x{}'.format(self.axis_ct),
-            'yref': 'y{}'.format(self.axis_ct),
-            'x': props['position'][0],
-            'y': props['position'][1],
-            'showarrow': False  # change this later?
+            'font': {'color': props['style']['color'],
+                     'size': props['style']['fontsize']
+            },
+            'xref': 'paper',
+            'yref': 'paper',
+            'x': x,
+            'y': y,
+            'showarrow': False  # no arrow for a title!
         }
-        if props['coordinates'] == 'points':
-            data_pos = self._current_ax.transData.inverted().transform(props['position'])
-            annotation['x'], annotation['y'] = data_pos[0], data_pos[1]
-        if props['coordinates'] == 'figure':
-            data_pos = self._current_ax.transFigure.inverted().transform(props['position'])
-            annotation['x'], annotation['y'] = data_pos[0], data_pos[1]
         self.layout['annotations'] += annotation,
+
+    def draw_xlabel(self, **props):
+        """Add an xaxis label to the current subplot in layout dictionary."""
+        self.layout['xaxis{}'.format(self.axis_ct)]['title'] = props['text']
+        titlefont = {'size': props['style']['fontsize'],
+                     'color': props['style']['color']
+        }
+        self.layout['xaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
+
+    def draw_ylabel(self, **props):
+        """Add a yaxis label to the current subplot in layout dictionary."""
+        self.layout['yaxis{}'.format(self.axis_ct)]['title'] = props['text']
+        titlefont = {'size': props['style']['fontsize'],
+                     'color': props['style']['color']
+        }
+        self.layout['yaxis{}'.format(self.axis_ct)]['titlefont'] = titlefont
 
 
 def fig_to_plotly(fig, username=None, api_key=None, notebook=False):
