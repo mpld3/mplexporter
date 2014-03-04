@@ -264,16 +264,25 @@ class PlotlyRenderer(Renderer):
                 x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
                 xref = 'paper'
                 yref = 'paper'
+                xanchor = plotly_utils.convert_alignment(props['style'][
+                    'halign'])
+                yanchor = plotly_utils.convert_alignment(props['style'][
+                    'valign'])
             else:
                 x, y = props['position']
                 xref = 'x{}'.format(self.axis_ct)
                 yref = 'y{}'.format(self.axis_ct)
+                xanchor = None
+                yanchor = None
             annotation = {
                 'text': props['text'],
+                'opacity': props['style']['alpha'],
                 'x': x,
                 'y': y,
                 'xref': xref,
                 'yref': yref,
+                'xanchor': xanchor,
+                'yanchor': yanchor,
                 'font': {'color': props['style']['color'],
                          'size': props['style']['fontsize']
                 },
@@ -300,6 +309,8 @@ class PlotlyRenderer(Renderer):
                 'yref': 'paper',
                 'x': x,
                 'y': y,
+                'xanchor': 'center',
+                'yanchor': 'bottom',
                 'showarrow': False  # no arrow for a title!
             }
             self.layout['annotations'] += annotation,
