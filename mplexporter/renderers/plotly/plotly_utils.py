@@ -24,6 +24,19 @@ def get_y_domain(bounds):
     return [bounds[1], bounds[1] + bounds[3]]
 
 
+def get_axes_bounds(fig):
+    x_min, x_max, y_min, y_max = [], [], [], []
+    for axes_obj in fig.get_axes():
+        bounds = axes_obj.get_position().bounds
+        x_min.append(get_x_domain(bounds)[0])
+        x_max.append(get_x_domain(bounds)[1])
+        y_min.append(get_y_domain(bounds)[0])
+        y_max.append(get_y_domain(bounds)[1])
+    x_min, y_min, x_max, y_max = min(x_min), min(y_min), max(x_max), max(y_max)
+    return (x_min, x_max), (y_min, y_max)
+
+
+
 def convert_to_paper(x, y, layout):
     """Convert mpl display coordinates to plotly paper coordinates.
 
