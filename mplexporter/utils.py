@@ -215,6 +215,9 @@ def get_axis_properties(axis):
     else:
         props['tickformat'] = None
 
+    # Get axis scale
+    props['scale'] = axis.get_scale()
+
     # Get associated grid
     props['grid'] = get_grid_style(axis)
 
