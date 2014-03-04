@@ -14,6 +14,23 @@ def convert_dash(mpl_dash):
         return 'solid'  # default
 
 
+def convert_alignment(mpl_text_alignment):
+    """Convert mpl text alignment word to equivalent plotly word.
+
+    Text alignment specifiers from mpl differ very slightly from those used
+    in plotly. See the ALIGNMENT_MAP for more details, this is just a very
+    straight-forward approach to converting 'baseline' -> 'bottom'.
+
+    Positional arguments:
+    mpl_text_alignment -- horizontal OR vertical mpl text alighment spec.
+
+    """
+    if mpl_text_alignment in ALIGNMENT_MAP:
+        return ALIGNMENT_MAP[mpl_text_alignment]
+    else:
+        return None # let plotly figure it out!
+
+
 def get_x_domain(bounds):
     """Convert matplotlib (x0,width) to (x0,x1) and return."""
     return [bounds[0], bounds[0] + bounds[2]]
@@ -22,6 +39,32 @@ def get_x_domain(bounds):
 def get_y_domain(bounds):
     """Convert matplotlib (y0,height) to (y0,y1) and return."""
     return [bounds[1], bounds[1] + bounds[3]]
+
+
+def get_axes_bounds(fig):
+    """Return the entire axes space for figure.
+
+    An axes object in mpl is specified by its relation to the figure where
+    (0,0) corresponds to the bottom-left part of the figure and (1,1)
+    corresponds to the top-right. Margins exist in matplotlib because axes
+    objects normally don't go to the edges of the figure.
+
+    In plotly, the axes area (where all subplots go) is always specified with
+    the domain [0,1] for both x and y. This function finds the smallest box,
+    specified by two points, that all of the mpl axes objects fit into. This
+    box is then used to map mpl axes domains to plotly axes domains.
+
+    """
+    x_min, x_max, y_min, y_max = [], [], [], []
+    for axes_obj in fig.get_axes():
+        bounds = axes_obj.get_position().bounds
+        x_min.append(get_x_domain(bounds)[0])
+        x_max.append(get_x_domain(bounds)[1])
+        y_min.append(get_y_domain(bounds)[0])
+        y_max.append(get_y_domain(bounds)[1])
+    x_min, y_min, x_max, y_max = min(x_min), min(y_min), max(x_max), max(y_max)
+    return (x_min, x_max), (y_min, y_max)
+
 
 
 def convert_to_paper(x, y, layout):
@@ -213,6 +256,14 @@ SYMBOL_MAP = {
     '-': 'solid',
     '--': 'dash',
     '-.': 'dashdot'
+}
+
+ALIGNMENT_MAP = {
+    'left': 'left',
+    'center': 'center',
+    'right': 'right',
+    'baseline': 'bottom',
+    'top': 'top'
 }
 
 DATA_KEY_REPAIRS = {}

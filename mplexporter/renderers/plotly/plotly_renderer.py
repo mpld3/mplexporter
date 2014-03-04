@@ -56,6 +56,8 @@ class PlotlyRenderer(Renderer):
         self.data = []
         self.layout = {}
         self.axis_ct = 0
+        self.mpl_x_bounds = (0, 1)
+        self.mpl_y_bounds = (0, 1)
 
     def open_figure(self, fig, props):
         """Creates a new figure by beginning to fill out layout dict.
@@ -68,8 +70,15 @@ class PlotlyRenderer(Renderer):
         """
         self.layout['width'] = int(props['figwidth']*props['dpi'])
         self.layout['height'] = int(props['figheight']*props['dpi'])
-        self.layout['margin'] = {'l': 0, 'r': 0, 't': 0, 'b': 0, 'pad': 0}
         self.layout['autosize'] = False
+        self.mpl_x_bounds, self.mpl_y_bounds = plotly_utils.get_axes_bounds(fig)
+        self.layout['margin'] = {
+            'l': int(self.mpl_x_bounds[0]*self.layout['width']),
+            'r': int((1-self.mpl_x_bounds[1])*self.layout['width']),
+            't': int((1-self.mpl_y_bounds[1])*self.layout['height']),
+            'b': int(self.mpl_y_bounds[0]*self.layout['height']),
+            'pad': 0
+        }
 
     def close_figure(self, fig):
         """Closes figure by cleaning up data and layout dictionaries.
@@ -106,6 +115,20 @@ class PlotlyRenderer(Renderer):
         and updates the layout dictionary. PlotlyRenderer keeps track of the
         number of plots by incrementing the axis_ct attribute.
 
+        The bbox used to locate an axes object in mpl differs from the
+        method used to locate axes in plotly. The mpl version locates each
+        axes in the figure so that axes in a single-plot figure might have
+        the bounds, [0.125, 0.125, 0.775, 0.775] (x0, y0, width, height),
+        in mpl's figure coordinates. However, the axes all share one space in
+        plotly such that the domain will always be [0, 0, 1, 1]
+        (x0, y0, x1, y1). To convert between the two, the mpl figure bounds
+        need to be mapped to a [0, 1] domain for x and y. The margins set
+        upon opening a new figure will appropriately match the mpl margins.
+
+        Optionally, setting margins=0 and simply copying the domains from
+        mpl to plotly would place axes appropriately. However,
+        this would throw off axis and title labeling.
+
         Positional arguments:
         ax -- an mpl axes object. This will become a subplot in plotly.
         props -- selected axes properties from the exporter (a dict).
@@ -126,6 +149,21 @@ class PlotlyRenderer(Renderer):
                 'anchor': 'x{}'.format(self.axis_ct)
             }
         }
+        # fix domain issue...
+        dom = layout['xaxis{}'.format(self.axis_ct)]['domain']
+        dom[0] = (dom[0]-self.mpl_x_bounds[0])/\
+                 (self.mpl_x_bounds[1] - self.mpl_x_bounds[0])
+        dom[1] = (dom[1]-self.mpl_x_bounds[0])/\
+                 (self.mpl_x_bounds[1] - self.mpl_x_bounds[0])
+        layout['xaxis{}'.format(self.axis_ct)]['domain'] = dom
+        for key, value in layout.items():
+            self.layout[key] = value
+        dom = layout['yaxis{}'.format(self.axis_ct)]['domain']
+        dom[0] = (dom[0]-self.mpl_y_bounds[0])/\
+                 (self.mpl_y_bounds[1] - self.mpl_y_bounds[0])
+        dom[1] = (dom[1]-self.mpl_y_bounds[0])/\
+                 (self.mpl_y_bounds[1] - self.mpl_y_bounds[0])
+        layout['yaxis{}'.format(self.axis_ct)]['domain'] = dom
         for key, value in layout.items():
             self.layout[key] = value
 
@@ -220,22 +258,31 @@ class PlotlyRenderer(Renderer):
         elif props['text_type'] == 'title':
             self.draw_title(**props)
         else:  # just a regular text annotation...
-            if True:  # props['coordinates'] is not 'data':
+            if props['coordinates'] is not 'data':
                 x_px, y_px = props['mplobj'].get_transform().transform(
                     props['position'])
                 x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
                 xref = 'paper'
                 yref = 'paper'
+                xanchor = plotly_utils.convert_alignment(props['style'][
+                    'halign'])
+                yanchor = plotly_utils.convert_alignment(props['style'][
+                    'valign'])
             else:
                 x, y = props['position']
                 xref = 'x{}'.format(self.axis_ct)
                 yref = 'y{}'.format(self.axis_ct)
+                xanchor = None
+                yanchor = None
             annotation = {
                 'text': props['text'],
+                'opacity': props['style']['alpha'],
                 'x': x,
                 'y': y,
                 'xref': xref,
                 'yref': yref,
+                'xanchor': xanchor,
+                'yanchor': yanchor,
                 'font': {'color': props['style']['color'],
                          'size': props['style']['fontsize']
                 },
@@ -249,21 +296,30 @@ class PlotlyRenderer(Renderer):
         Currently, titles are added as annotations.
 
         """
-        x_px, y_px = props['mplobj'].get_transform().transform(props[
-            'position'])
-        x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
-        annotation = {
-            'text': props['text'],
-            'font': {'color': props['style']['color'],
-                     'size': props['style']['fontsize']
-            },
-            'xref': 'paper',
-            'yref': 'paper',
-            'x': x,
-            'y': y,
-            'showarrow': False  # no arrow for a title!
-        }
-        self.layout['annotations'] += annotation,
+        if len(self._current_fig.axes) > 1:
+            x_px, y_px = props['mplobj'].get_transform().transform(props[
+                'position'])
+            x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
+            annotation = {
+                'text': props['text'],
+                'font': {'color': props['style']['color'],
+                         'size': props['style']['fontsize']
+                },
+                'xref': 'paper',
+                'yref': 'paper',
+                'x': x,
+                'y': y,
+                'xanchor': 'center',
+                'yanchor': 'bottom',
+                'showarrow': False  # no arrow for a title!
+            }
+            self.layout['annotations'] += annotation,
+        else:
+            self.layout['title'] = props['text']
+            titlefont = {'size': props['style']['fontsize'],
+                         'color': props['style']['color']
+            }
+            self.layout['titlefont'] = titlefont
 
     def draw_xlabel(self, **props):
         """Add an xaxis label to the current subplot in layout dictionary."""
