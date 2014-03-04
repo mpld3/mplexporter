@@ -218,6 +218,13 @@ def get_axis_properties(axis):
     # Get axis scale
     props['scale'] = axis.get_scale()
 
+    # Get major tick label size (assumes that's all we really care about!)
+    sizes = [tick.get_fontsize() for tick in axis.get_ticklabels()]
+    if sizes[1:] == sizes[:-1]:
+        props['fontsize'] = sizes[0]
+    else:
+        props['fontsize'] = None
+
     # Get associated grid
     props['grid'] = get_grid_style(axis)
 
