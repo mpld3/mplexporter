@@ -219,9 +219,9 @@ def get_axis_properties(axis):
     props['scale'] = axis.get_scale()
 
     # Get major tick label size (assumes that's all we really care about!)
-    sizes = [tick.get_fontsize() for tick in axis.get_ticklabels()]
-    if sizes[1:] == sizes[:-1]:
-        props['fontsize'] = sizes[0]
+    labels = axis.get_ticklabels()
+    if labels:
+        props['fontsize'] = labels[0].get_fontsize()
     else:
         props['fontsize'] = None
 
