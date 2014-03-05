@@ -272,8 +272,8 @@ class PlotlyRenderer(Renderer):
                 x, y = props['position']
                 xref = 'x{}'.format(self.axis_ct)
                 yref = 'y{}'.format(self.axis_ct)
-                xanchor = None
-                yanchor = None
+                xanchor = 'center'
+                yanchor = 'center'
             annotation = {
                 'text': props['text'],
                 'opacity': props['style']['alpha'],
