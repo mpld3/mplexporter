@@ -14,19 +14,18 @@ def convert_dash(mpl_dash):
         return 'solid'  # default
 
 
-def convert_alignment(mpl_text_alignment):
-    """Convert mpl text alignment word to equivalent plotly word.
+def convert_va(mpl_va):
+    """Convert mpl vertical alignment word to equivalent HTML word.
 
     Text alignment specifiers from mpl differ very slightly from those used
-    in plotly. See the ALIGNMENT_MAP for more details, this is just a very
-    straight-forward approach to converting 'baseline' -> 'bottom'.
+    in HTML. See the VA_MAP for more details.
 
     Positional arguments:
-    mpl_text_alignment -- horizontal OR vertical mpl text alighment spec.
+    mpl_va -- vertical mpl text alignment spec.
 
     """
-    if mpl_text_alignment in ALIGNMENT_MAP:
-        return ALIGNMENT_MAP[mpl_text_alignment]
+    if mpl_va in VA_MAP:
+        return VA_MAP[mpl_va]
     else:
         return None # let plotly figure it out!
 
@@ -258,10 +257,8 @@ SYMBOL_MAP = {
     '-.': 'dashdot'
 }
 
-ALIGNMENT_MAP = {
-    'left': 'left',
-    'center': 'center',
-    'right': 'right',
+VA_MAP = {
+    'center': 'middle',
     'baseline': 'bottom',
     'top': 'top'
 }

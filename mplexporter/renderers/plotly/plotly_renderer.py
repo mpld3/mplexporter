@@ -9,6 +9,7 @@ Attributes:
     fig_to_plotly -- a function to send an mpl figure to Plotly
 
 """
+import warnings
 from . import plotly_utils
 from .. base import Renderer
 from ... exporter import Exporter
@@ -233,6 +234,24 @@ class PlotlyRenderer(Renderer):
         else:
             pass
 
+    def draw_path(self, **props):
+        """Draw path.
+
+        Not implemented yet!
+
+        """
+        warnings.warn('draw_path not implemented yet, this will effect any '
+                      'patch objects you may be creating in mpl')
+
+    def draw_image(self, **props):
+        """Draw image.
+
+        Not implemented yet!
+
+        """
+        warnings.warn('draw_image not implemented yet, images will not show '
+                      'up in plotly.')
+
     def draw_text(self, **props):
         """Create an annotation dict for a text obj.
 
@@ -264,16 +283,14 @@ class PlotlyRenderer(Renderer):
                 x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
                 xref = 'paper'
                 yref = 'paper'
-                xanchor = plotly_utils.convert_alignment(props['style'][
-                    'halign'])
-                yanchor = plotly_utils.convert_alignment(props['style'][
-                    'valign'])
+                xanchor = props['style']['halign']  # no difference here!
+                yanchor = plotly_utils.convert_va(props['style']['valign'])
             else:
                 x, y = props['position']
                 xref = 'x{}'.format(self.axis_ct)
                 yref = 'y{}'.format(self.axis_ct)
                 xanchor = 'center'
-                yanchor = 'center'
+                yanchor = 'middle'
             annotation = {
                 'text': props['text'],
                 'opacity': props['style']['alpha'],
