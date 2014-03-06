@@ -9,6 +9,7 @@ Attributes:
     fig_to_plotly -- a function to send an mpl figure to Plotly
 
 """
+import warnings
 from . import plotly_utils
 from .. base import Renderer
 from ... exporter import Exporter
@@ -232,6 +233,24 @@ class PlotlyRenderer(Renderer):
             self.data += trace,
         else:
             pass
+
+    def draw_path(self, **props):
+        """Draw path.
+
+        Not implemented yet!
+
+        """
+        warnings.warn('draw_path not implemented yet, this will effect any '
+                      'patch objects you may be creating in mpl')
+
+    def draw_image(self, **props):
+        """Draw image.
+
+        Not implemented yet!
+
+        """
+        warnings.warn('draw_image not implemented yet, images will not show '
+                      'up in plotly.')
 
     def draw_text(self, **props):
         """Create an annotation dict for a text obj.
