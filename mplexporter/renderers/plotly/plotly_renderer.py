@@ -283,16 +283,14 @@ class PlotlyRenderer(Renderer):
                 x, y = plotly_utils.convert_to_paper(x_px, y_px, self.layout)
                 xref = 'paper'
                 yref = 'paper'
-                xanchor = plotly_utils.convert_alignment(props['style'][
-                    'halign'])
-                yanchor = plotly_utils.convert_alignment(props['style'][
-                    'valign'])
+                xanchor = props['style']['halign']  # no difference here!
+                yanchor = plotly_utils.convert_va(props['style']['valign'])
             else:
                 x, y = props['position']
                 xref = 'x{}'.format(self.axis_ct)
                 yref = 'y{}'.format(self.axis_ct)
                 xanchor = 'center'
-                yanchor = 'center'
+                yanchor = 'middle'
             annotation = {
                 'text': props['text'],
                 'opacity': props['style']['alpha'],
