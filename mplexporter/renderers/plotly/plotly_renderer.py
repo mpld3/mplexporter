@@ -116,19 +116,9 @@ class PlotlyRenderer(Renderer):
         and updates the layout dictionary. PlotlyRenderer keeps track of the
         number of plots by incrementing the axis_ct attribute.
 
-        The bbox used to locate an axes object in mpl differs from the
-        method used to locate axes in plotly. The mpl version locates each
-        axes in the figure so that axes in a single-plot figure might have
-        the bounds, [0.125, 0.125, 0.775, 0.775] (x0, y0, width, height),
-        in mpl's figure coordinates. However, the axes all share one space in
-        plotly such that the domain will always be [0, 0, 1, 1]
-        (x0, y0, x1, y1). To convert between the two, the mpl figure bounds
-        need to be mapped to a [0, 1] domain for x and y. The margins set
-        upon opening a new figure will appropriately match the mpl margins.
-
-        Optionally, setting margins=0 and simply copying the domains from
-        mpl to plotly would place axes appropriately. However,
-        this would throw off axis and title labeling.
+        Setting the proper plot domain in plotly is a bit tricky. Refer to
+        the documentation for plotly_utils.get_plotly_x_domain and
+        plotly_utils.get_plotly_y_domain.
 
         Positional arguments:
         ax -- an mpl axes object. This will become a subplot in plotly.
@@ -140,31 +130,18 @@ class PlotlyRenderer(Renderer):
             'xaxis{}'.format(self.axis_ct): {
                 'range': props['xlim'],
                 'showgrid': props['axes'][1]['grid']['gridOn'],
-                'domain': plotly_utils.get_x_domain(props['bounds']),
+                'domain': plotly_utils.get_plotly_x_domain(props['bounds'],
+                                                           self.mpl_x_bounds),
                 'anchor': 'y{}'.format(self.axis_ct)
             },
             'yaxis{}'.format(self.axis_ct): {
                 'range': props['ylim'],
                 'showgrid': props['axes'][0]['grid']['gridOn'],
-                'domain': plotly_utils.get_y_domain(props['bounds']),
+                'domain': plotly_utils.get_plotly_y_domain(props['bounds'],
+                                                           self.mpl_y_bounds),
                 'anchor': 'x{}'.format(self.axis_ct)
             }
         }
-        # fix domain issue...
-        dom = layout['xaxis{}'.format(self.axis_ct)]['domain']
-        dom[0] = (dom[0]-self.mpl_x_bounds[0])/\
-                 (self.mpl_x_bounds[1] - self.mpl_x_bounds[0])
-        dom[1] = (dom[1]-self.mpl_x_bounds[0])/\
-                 (self.mpl_x_bounds[1] - self.mpl_x_bounds[0])
-        layout['xaxis{}'.format(self.axis_ct)]['domain'] = dom
-        for key, value in layout.items():
-            self.layout[key] = value
-        dom = layout['yaxis{}'.format(self.axis_ct)]['domain']
-        dom[0] = (dom[0]-self.mpl_y_bounds[0])/\
-                 (self.mpl_y_bounds[1] - self.mpl_y_bounds[0])
-        dom[1] = (dom[1]-self.mpl_y_bounds[0])/\
-                 (self.mpl_y_bounds[1] - self.mpl_y_bounds[0])
-        layout['yaxis{}'.format(self.axis_ct)]['domain'] = dom
         for key, value in layout.items():
             self.layout[key] = value
 
@@ -310,7 +287,8 @@ class PlotlyRenderer(Renderer):
     def draw_title(self, **props):
         """Add a title to the current subplot in layout dictionary.
 
-        Currently, titles are added as annotations.
+        If there exists more than a single plot in the figure, titles revert
+        to 'page'-referenced annotations.
 
         """
         if len(self._current_fig.axes) > 1:
