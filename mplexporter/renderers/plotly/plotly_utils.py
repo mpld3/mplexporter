@@ -14,14 +14,108 @@ def convert_dash(mpl_dash):
         return 'solid'  # default
 
 
-def get_x_domain(bounds):
-    """Convert matplotlib (x0,width) to (x0,x1) and return."""
-    return [bounds[0], bounds[0] + bounds[2]]
+def convert_va(mpl_va):
+    """Convert mpl vertical alignment word to equivalent HTML word.
+
+    Text alignment specifiers from mpl differ very slightly from those used
+    in HTML. See the VA_MAP for more details.
+
+    Positional arguments:
+    mpl_va -- vertical mpl text alignment spec.
+
+    """
+    if mpl_va in VA_MAP:
+        return VA_MAP[mpl_va]
+    else:
+        return None # let plotly figure it out!
 
 
-def get_y_domain(bounds):
-    """Convert matplotlib (y0,height) to (y0,y1) and return."""
-    return [bounds[1], bounds[1] + bounds[3]]
+def get_plotly_x_domain(mpl_plot_bounds, mpl_max_x_bounds):
+    """Map x dimension of current plot to plotly's domain space.
+
+    The bbox used to locate an axes object in mpl differs from the
+    method used to locate axes in plotly. The mpl version locates each
+    axes in the figure so that axes in a single-plot figure might have
+    the bounds, [0.125, 0.125, 0.775, 0.775] (x0, y0, width, height),
+    in mpl's figure coordinates. However, the axes all share one space in
+    plotly such that the domain will always be [0, 0, 1, 1]
+    (x0, y0, x1, y1). To convert between the two, the mpl figure bounds
+    need to be mapped to a [0, 1] domain for x and y. The margins set
+    upon opening a new figure will appropriately match the mpl margins.
+
+    Optionally, setting margins=0 and simply copying the domains from
+    mpl to plotly would place axes appropriately. However,
+    this would throw off axis and title labeling.
+
+    Positional arguments:
+    mpl_plot_bounds -- the (x0, y0, width, height) params for current ax **
+    mpl_max_x_bounds -- overall (x0, x1) bounds for all axes **
+
+    ** these are all specified in mpl figure coordinates
+
+    """
+    mpl_x_dom = [mpl_plot_bounds[0], mpl_plot_bounds[0]+mpl_plot_bounds[2]]
+    plotting_width = (mpl_max_x_bounds[1]-mpl_max_x_bounds[0])
+    x0 = (mpl_x_dom[0]-mpl_max_x_bounds[0])/plotting_width
+    x1 = (mpl_x_dom[1]-mpl_max_x_bounds[0])/plotting_width
+    return [x0, x1]
+
+
+def get_plotly_y_domain(mpl_plot_bounds, mpl_max_y_bounds):
+    """Map y dimension of current plot to plotly's domain space.
+
+    The bbox used to locate an axes object in mpl differs from the
+    method used to locate axes in plotly. The mpl version locates each
+    axes in the figure so that axes in a single-plot figure might have
+    the bounds, [0.125, 0.125, 0.775, 0.775] (x0, y0, width, height),
+    in mpl's figure coordinates. However, the axes all share one space in
+    plotly such that the domain will always be [0, 0, 1, 1]
+    (x0, y0, x1, y1). To convert between the two, the mpl figure bounds
+    need to be mapped to a [0, 1] domain for x and y. The margins set
+    upon opening a new figure will appropriately match the mpl margins.
+
+    Optionally, setting margins=0 and simply copying the domains from
+    mpl to plotly would place axes appropriately. However,
+    this would throw off axis and title labeling.
+
+    Positional arguments:
+    mpl_plot_bounds -- the (x0, y0, width, height) params for current ax **
+    mpl_max_y_bounds -- overall (y0, y1) bounds for all axes **
+
+    ** these are all specified in mpl figure coordinates
+
+    """
+    mpl_y_dom = [mpl_plot_bounds[1], mpl_plot_bounds[1]+mpl_plot_bounds[3]]
+    plotting_height = (mpl_max_y_bounds[1]-mpl_max_y_bounds[0])
+    y0 = (mpl_y_dom[0]-mpl_max_y_bounds[0])/plotting_height
+    y1 = (mpl_y_dom[1]-mpl_max_y_bounds[0])/plotting_height
+    return [y0, y1]
+
+
+def get_axes_bounds(fig):
+    """Return the entire axes space for figure.
+
+    An axes object in mpl is specified by its relation to the figure where
+    (0,0) corresponds to the bottom-left part of the figure and (1,1)
+    corresponds to the top-right. Margins exist in matplotlib because axes
+    objects normally don't go to the edges of the figure.
+
+    In plotly, the axes area (where all subplots go) is always specified with
+    the domain [0,1] for both x and y. This function finds the smallest box,
+    specified by two points, that all of the mpl axes objects fit into. This
+    box is then used to map mpl axes domains to plotly axes domains.
+
+    """
+    x_min, x_max, y_min, y_max = [], [], [], []
+    for axes_obj in fig.get_axes():
+        bounds = axes_obj.get_position().bounds
+        x_min.append(bounds[0])
+        x_max.append(bounds[0]+bounds[2])
+        y_min.append(bounds[1])
+        y_max.append(bounds[1]+bounds[3])
+    x_min, y_min, x_max, y_max = min(x_min), min(y_min), max(x_max), max(y_max)
+    return (x_min, x_max), (y_min, y_max)
+
 
 
 def convert_to_paper(x, y, layout):
@@ -213,6 +307,12 @@ SYMBOL_MAP = {
     '-': 'solid',
     '--': 'dash',
     '-.': 'dashdot'
+}
+
+VA_MAP = {
+    'center': 'middle',
+    'baseline': 'bottom',
+    'top': 'top'
 }
 
 DATA_KEY_REPAIRS = {}
