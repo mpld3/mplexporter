@@ -265,10 +265,24 @@ def get_axes_properties(ax):
         lim = domain
         if isinstance(axis.converter, matplotlib.dates.DateConverter):
             scale = 'date'
-            domain = [(d.year, d.month - 1, d.day,
-                       d.hour, d.minute, d.second,
-                       d.microsecond * 1E-3)
-                      for d in matplotlib.dates.num2date(domain)]
+            try:
+                import pandas as pd
+                from pandas.tseries.converter import PeriodConverter
+            except ImportError:
+                pd = None
+
+            if (pd is not None and isinstance(axis.converter,
+                                              PeriodConverter)):
+                _dates = [pd.Period(ordinal=int(d), freq=axis.freq)
+                          for d in domain]
+                domain = [(d.year, d.month - 1, d.day,
+                           d.hour, d.minute, d.second, 0)
+                          for d in _dates]
+            else:
+                domain = [(d.year, d.month - 1, d.day,
+                           d.hour, d.minute, d.second,
+                           d.microsecond * 1E-3)
+                          for d in matplotlib.dates.num2date(domain)]
         else:
             scale = axis.get_scale()
 
