@@ -26,6 +26,5 @@ setup(name=NAME,
       url=URL,
       download_url=DOWNLOAD_URL,
       license=LICENSE,
-      packages=['mplexporter', 'mplexporter.renderers',
-                'mplexporter.renderers.plotly'],
+      packages=['mplexporter', 'mplexporter.renderers'],
      )
