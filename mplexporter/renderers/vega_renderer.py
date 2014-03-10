@@ -18,10 +18,8 @@ class VegaRenderer(Renderer):
     def open_axes(self, ax, props):
         if len(self.axes) > 0:
             warnings.warn("multiple axes not yet supported")
-        self.axes = [dict(type="x", scale="x", ticks=10,
-                          title=props['xlabel']),
-                     dict(type="y", scale="y", ticks=10,
-                          title=props['ylabel'])]
+        self.axes = [dict(type="x", scale="x", ticks=10),
+                     dict(type="y", scale="y", ticks=10)]
         self.scales = [dict(name="x",
                             domain=props['xlim'],
                             type="linear",
@@ -78,6 +76,13 @@ class VegaRenderer(Renderer):
                                }
                            }
                        })
+
+    def draw_text(self, text, position, coordinates, style,
+                  text_type=None, mplobj=None):
+        if text_type == 'xlabel':
+            self.axes[0]['title'] = text
+        elif text_type == 'ylabel':
+            self.axes[1]['title'] = text
 
 
 class VegaHTML(object):
