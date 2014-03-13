@@ -161,6 +161,7 @@ def get_marker_style(line):
                        + Affine2D().scale(markersize, -markersize))
     style['markerpath'] = SVG_path(markerstyle.get_path(),
                                    markertransform)
+    style['markersize'] = markersize
     style['zorder'] = line.get_zorder()
     return style
 
