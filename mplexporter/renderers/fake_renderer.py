@@ -49,10 +49,10 @@ class FullFakeRenderer(FakeRenderer):
     other methods in the class.  They can be defined explicitly for
     more efficient or specialized use within the renderer implementation.
     """
-    def draw_line(self, data, coordinates, style, mplobj=None):
+    def draw_line(self, data, coordinates, style, label, mplobj=None):
         self.output += "    draw line with {0} points\n".format(data.shape[0])
 
-    def draw_markers(self, data, coordinates, style, mplobj=None):
+    def draw_markers(self, data, coordinates, style, label, mplobj=None):
         self.output += "    draw {0} markers\n".format(data.shape[0])
 
     def draw_path_collection(self, paths, path_coordinates, path_transforms,

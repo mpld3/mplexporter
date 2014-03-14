@@ -107,7 +107,21 @@ class Renderer(object):
         """
         pass
 
-    def draw_line(self, data, coordinates, style, mplobj=None):
+    def draw_marked_line(self, data, coordinates, linestyle, markerstyle,
+                         label, mplobj=None):
+        """Draw a line that also has markers.
+
+        If this isn't reimplemented by a renderer object, by default, it will
+        make a call to BOTH draw_line and draw_markers when both markerstyle
+        and linestyle are not None in the same Line2D object.
+
+        """
+        if linestyle is not None:
+            self.draw_line(data, coordinates, linestyle, label, mplobj)
+        if markerstyle is not None:
+            self.draw_markers(data, coordinates, markerstyle, label, mplobj)
+
+    def draw_line(self, data, coordinates, style, label, mplobj=None):
         """
         Draw a line. By default, draw the line via the draw_path() command.
         Some renderers might wish to override this and provide more
@@ -222,7 +236,7 @@ class Renderer(object):
                            offset_coordinates=offset_coordinates,
                            mplobj=mplobj)
 
-    def draw_markers(self, data, coordinates, style, mplobj=None):
+    def draw_markers(self, data, coordinates, style, label, mplobj=None):
         """
         Draw a set of markers. By default, this is done by repeatedly
         calling draw_path(), but renderers should generally overload
