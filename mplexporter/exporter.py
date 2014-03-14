@@ -164,13 +164,15 @@ class Exporter(object):
                                                    ax, line.get_xydata(),
                                                    force_trans=force_trans)
         linestyle = utils.get_line_style(line)
+        if linestyle['dsharray'] in ['None', 'none', None]:
+            linestyle = None
         markerstyle = utils.get_marker_style(line)
-        lines = linestyle['dasharray'] not in ['None', 'none', None]
-        markers = markerstyle['marker'] not in ['None', 'none', None]
+        if (markerstyle['marker'] in ['None', 'none', None]
+                or markerstyle['markerpath'][0].size == 0):
+            markerstyle = None
         label = line.get_label()
-        if markers and not lines and markerstyle['markerpath'][0].size > 0:
+        if markerstyle or linestyle:
             self.renderer.draw_marked_line(data=data, coordinates=coordinates,
-                                           lines=lines, markers=markers,
                                            linestyle=linestyle,
                                            markerstyle=markerstyle,
                                            label=label,
