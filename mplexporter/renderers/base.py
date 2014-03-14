@@ -107,6 +107,20 @@ class Renderer(object):
         """
         pass
 
+    def draw_marked_line(self, data, coordinates, lines, markers, linestyle,
+                         markerstyle, label, mplobj=None):
+        """Draw a line that also has markers.
+
+        If this isn't reimplemented by a renderer object, by default, it will
+        make a call to BOTH draw_line and draw_markers when both markers and
+        lines are present in the same Line2D object.
+
+        """
+        if lines:
+            self.draw_line(data, coordinates, linestyle, label, mplobj)
+        if markers:
+            self.draw_markers(data, coordinates, markerstyle, label, mplobj)
+
     def draw_line(self, data, coordinates, style, mplobj=None):
         """
         Draw a line. By default, draw the line via the draw_path() command.

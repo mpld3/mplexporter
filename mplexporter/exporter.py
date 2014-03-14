@@ -164,17 +164,17 @@ class Exporter(object):
                                                    ax, line.get_xydata(),
                                                    force_trans=force_trans)
         linestyle = utils.get_line_style(line)
-        if linestyle['dasharray'] not in ['None', 'none', None]:
-            self.renderer.draw_line(data=data,
-                                    coordinates=coordinates,
-                                    style=linestyle, mplobj=line)
-
         markerstyle = utils.get_marker_style(line)
-        if markerstyle['marker'] not in ['None', 'none', None]:
-            if markerstyle['markerpath'][0].size > 0:
-                self.renderer.draw_markers(data=data,
-                                           coordinates=coordinates,
-                                           style=markerstyle, mplobj=line)
+        lines = linestyle['dasharray'] not in ['None', 'none', None]
+        markers = markerstyle['marker'] not in ['None', 'none', None]
+        label = line.get_label()
+        if markers and not lines and markerstyle['markerpath'][0].size > 0:
+            self.renderer.draw_marked_line(data=data, coordinates=coordinates,
+                                           lines=lines, markers=markers,
+                                           linestyle=linestyle,
+                                           markerstyle=markerstyle,
+                                           label=label,
+                                           mplobj=line)
 
     def draw_text(self, ax, text, force_trans=None, text_type=None):
         """Process a matplotlib text object and call renderer.draw_text"""
