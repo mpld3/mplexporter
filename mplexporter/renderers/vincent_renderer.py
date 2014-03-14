@@ -9,7 +9,7 @@ class VincentRenderer(Renderer):
         self.figwidth = int(props['figwidth'] * props['dpi'])
         self.figheight = int(props['figheight'] * props['dpi'])
 
-    def draw_line(self, data, coordinates, style, mplobj=None):
+    def draw_line(self, data, coordinates, style, label, mplobj=None):
         import vincent  # only import if VincentRenderer is used
         if coordinates != 'data':
             warnings.warn("Only data coordinates supported. Skipping this")
@@ -26,7 +26,7 @@ class VincentRenderer(Renderer):
         else:
             warnings.warn("Multiple plot elements not yet supported")
 
-    def draw_markers(self, data, coordinates, style, mplobj=None):
+    def draw_markers(self, data, coordinates, style, label, mplobj=None):
         import vincent  # only import if VincentRenderer is used
         if coordinates != 'data':
             warnings.warn("Only data coordinates supported. Skipping this")
