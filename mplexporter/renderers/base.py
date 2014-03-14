@@ -107,6 +107,14 @@ class Renderer(object):
         """
         pass
 
+    def draw_legend(self, line_calls, path_calls, text_calls):
+        for call in line_calls:
+            self.draw_line(**call)
+        for call in path_calls:
+            self.draw_path(**call)
+        for call in text_calls:
+            self.draw_text(**call)
+
     def draw_marked_line(self, data, coordinates, linestyle, markerstyle,
                          label, mplobj=None):
         """Draw a line that also has markers.
