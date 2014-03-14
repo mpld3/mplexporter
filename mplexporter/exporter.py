@@ -141,24 +141,41 @@ class Exporter(object):
 
             legend = ax.get_legend()
             if legend is not None:
-                for child in ax.legend_.get_children():
-                    # force a large zorder so it appears on top
-                    child.set_zorder(1E6 + child.get_zorder())
-                    if isinstance(child, matplotlib.patches.Patch):
-                        self.draw_patch(ax, child, force_trans=ax.transAxes)
-                    elif isinstance(child, matplotlib.text.Text):
-                        if not (child is ax.legend_.get_children()[-1]
-                                and child.get_text() == 'None'):
-                            self.draw_text(ax, child, force_trans=ax.transAxes)
-                    elif isinstance(child, matplotlib.lines.Line2D):
-                        self.draw_line(ax, child, force_trans=ax.transAxes)
-                    elif isinstance(child, matplotlib.offsetbox.PackerBase):
-                        pass
-                    else:
-                        warnings.warn("Legend element %s not impemented"
-                                      & child)
+                self.draw_legend(ax, legend)
 
-    def draw_line(self, ax, line, force_trans=None):
+    def draw_legend(self, ax, legend):
+        path_calls = []
+        text_calls = []
+        line_calls = []
+        packerbases_calls = []  # revisit later
+        for child in ax.legend_.get_children():
+            # force a large zorder so it appears on top
+            child.set_zorder(1E6 + child.get_zorder())
+            if isinstance(child, matplotlib.patches.Patch):
+                call = self.draw_patch(ax, child, force_trans=ax.transAxes,
+                                       get_return=True)
+                if call is not None:
+                    path_calls += call,
+            elif isinstance(child, matplotlib.text.Text):
+                if not (child is ax.legend_.get_children()[-1]
+                        and child.get_text() == 'None'):
+                    call = self.draw_text(ax, child, force_trans=ax.transAxes,
+                                          get_return=True)
+                    if call is not None:
+                        text_calls += call,
+            elif isinstance(child, matplotlib.lines.Line2D):
+                call = self.draw_line(ax, child, force_trans=ax.transAxes,
+                                      get_return=True)
+                if call is not None:
+                    line_calls += call,
+            elif isinstance(child, matplotlib.offsetbox.PackerBase):
+                pass
+            else:
+                warnings.warn("Legend element %s not impemented"
+                              & child)
+        self.renderer.draw_legend(line_calls, path_calls, text_calls)
+
+    def draw_line(self, ax, line, force_trans=None, get_return=False):
         """Process a matplotlib line and call renderer.draw_line"""
         coordinates, data = self.process_transform(line.get_transform(),
                                                    ax, line.get_xydata(),
@@ -172,13 +189,19 @@ class Exporter(object):
             markerstyle = None
         label = line.get_label()
         if markerstyle or linestyle:
-            self.renderer.draw_marked_line(data=data, coordinates=coordinates,
-                                           linestyle=linestyle,
-                                           markerstyle=markerstyle,
-                                           label=label,
-                                           mplobj=line)
+            call = dict(data=data,
+                        coordinates=coordinates,
+                        linestyle=linestyle,
+                        markerstyle=markerstyle,
+                        label=label,
+                        mplobj=line)
+            if get_return:
+                return call
+            else:
+                self.renderer.draw_marked_line(**call)
 
-    def draw_text(self, ax, text, force_trans=None, text_type=None):
+    def draw_text(self, ax, text, force_trans=None, text_type=None,
+                  get_return=False):
         """Process a matplotlib text object and call renderer.draw_text"""
         content = text.get_text()
         if content:
@@ -188,12 +211,18 @@ class Exporter(object):
                                                       position,
                                                       force_trans=force_trans)
             style = utils.get_text_style(text)
-            self.renderer.draw_text(text=content, position=position,
-                                    coordinates=coords,
-                                    text_type=text_type,
-                                    style=style, mplobj=text)
+            call = dict(text=content,
+                        position=position,
+                        coordinates=coords,
+                        text_type=text_type,
+                        style=style,
+                        mplobj=text)
+            if get_return:
+                return call
+            else:
+                self.renderer.draw_text(**call)
 
-    def draw_patch(self, ax, patch, force_trans=None):
+    def draw_patch(self, ax, patch, force_trans=None, get_return=False):
         """Process a matplotlib patch object and call renderer.draw_path"""
         vertices, pathcodes = utils.SVG_path(patch.get_path())
         transform = patch.get_transform()
@@ -201,11 +230,12 @@ class Exporter(object):
                                                        ax, vertices,
                                                        force_trans=force_trans)
         linestyle = utils.get_path_style(patch, fill=patch.get_fill())
-        self.renderer.draw_path(data=vertices,
-                                coordinates=coordinates,
-                                pathcodes=pathcodes,
-                                style=linestyle,
-                                mplobj=patch)
+        call = dict(data=vertices, coordinates=coordinates,
+                        pathcodes=pathcodes, style=linestyle, mplobj=patch)
+        if get_return:
+            return call
+        else:
+            self.renderer.draw_path(**call)
 
     def draw_collection(self, ax, collection,
                         force_pathtrans=None,
