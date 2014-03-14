@@ -159,22 +159,26 @@ class Exporter(object):
                                       & child)
 
     def draw_line(self, ax, line, force_trans=None):
-        """Process a matplotlib line and call renderer.draw_line"""
+        """Process a matplotlib line and call renderer.draw_line.
+
+        The mpl Line2D instances have both line and marker attributes. The
+        style dict will contain information about both of these attributes.
+        Depending on the mixture of lines and/or markers, the 'types'
+        can be: ['line'], ['marker'], ['line', 'marker'].
+
+        """
         coordinates, data = self.process_transform(line.get_transform(),
                                                    ax, line.get_xydata(),
                                                    force_trans=force_trans)
-        linestyle = utils.get_line_style(line)
-        if linestyle['dasharray'] not in ['None', 'none', None]:
-            self.renderer.draw_line(data=data,
-                                    coordinates=coordinates,
-                                    style=linestyle, mplobj=line)
-
-        markerstyle = utils.get_marker_style(line)
-        if markerstyle['marker'] not in ['None', 'none', None]:
-            if markerstyle['markerpath'][0].size > 0:
-                self.renderer.draw_markers(data=data,
-                                           coordinates=coordinates,
-                                           style=markerstyle, mplobj=line)
+        style = utils.get_line_style(line)
+        label = line.get_label()
+        types = []
+        if style['dasharray'] not in ['None', 'none', None]:
+            types += 'line',
+        if style['marker'] not in ['None', 'none', None]:
+            types += 'marker'
+        self.renderer.draw_line(data=data, coordinates=coordinates, style=style,
+                                types=types, label=label, mplobj=line)
 
     def draw_text(self, ax, text, force_trans=None, text_type=None):
         """Process a matplotlib text object and call renderer.draw_text"""
