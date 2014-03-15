@@ -30,6 +30,8 @@ def test_lines():
                          opening figure
                          opening axes
                          draw path with 20 vertices
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -39,6 +41,8 @@ def test_lines():
                          opening figure
                          opening axes
                          draw line with 20 points
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -54,6 +58,8 @@ def test_markers():
                          opening axes
                          draw path with 25 vertices
                          draw path with 25 vertices
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -63,6 +69,8 @@ def test_markers():
                          opening figure
                          opening axes
                          draw 2 markers
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -79,6 +87,8 @@ def test_path_collection():
                          draw path with 25 vertices
                          draw path with 25 vertices
                          draw path with 25 vertices
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -88,6 +98,8 @@ def test_path_collection():
                          opening figure
                          opening axes
                          draw path collection with 3 offsets
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -108,6 +120,8 @@ def test_text():
                          draw text 'my x label' xlabel
                          draw text 'my y label' ylabel
                          draw text 'my title' title
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -124,6 +138,8 @@ def test_path():
                          opening axes
                          draw path with 25 vertices
                          draw path with 4 vertices
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -139,9 +155,13 @@ def test_multiaxes():
                          opening figure
                          opening axes
                          draw path with 4 vertices
+                         opening legend
+                         closing legend
                          closing axes
                          opening axes
                          draw path with 10 vertices
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)
@@ -158,6 +178,8 @@ def test_image():
                          opening figure
                          opening axes
                          draw image of size 2848
+                         opening legend
+                         closing legend
                          closing axes
                          closing figure
                          """)

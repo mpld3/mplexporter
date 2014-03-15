@@ -29,6 +29,12 @@ class FakeRenderer(Renderer):
     def close_axes(self, ax):
         self.output += "  closing axes\n"
 
+    def open_legend(self, legend, props):
+        self.output += "    opening legend\n"
+
+    def close_legend(self, legend):
+        self.output += "    closing legend\n"
+
     def draw_text(self, text, position, coordinates, style,
                   text_type=None, mplobj=None):
         self.output += "    draw text '{0}' {1}\n".format(text, text_type)

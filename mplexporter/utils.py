@@ -296,8 +296,12 @@ def get_axes_properties(ax):
         props[axname + 'domain'] = domain
 
     return props
-    
 
+
+def get_legend_properties(ax):
+    handles, labels = ax.get_legend_handles_labels()
+    return {'handles': handles, 'labels': labels}
+    
 
 def image_to_base64(image):
     """
