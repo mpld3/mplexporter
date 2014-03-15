@@ -140,11 +140,11 @@ class Exporter(object):
                 self.draw_image(ax, image)
 
             legend = ax.get_legend()
-            with self.renderer.draw_legend(
-                    legend=legend,
-                    props=utils.get_legend_properties(ax)):
-                if legend is not None:
-                    self.crawl_legend(ax, legend)
+            if legend is not None:
+                props = utils.get_legend_properties(ax, legend)
+                with self.renderer.draw_legend(legend=legend, props=props):
+                    if props['visible']:
+                        self.crawl_legend(ax, legend)
 
     def crawl_legend(self, ax, legend):
         for child in legend.get_children():
