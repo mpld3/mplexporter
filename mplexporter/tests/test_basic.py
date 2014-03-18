@@ -161,3 +161,20 @@ def test_image():
                          closing axes
                          closing figure
                          """)
+
+
+def test_legend():
+    fig, ax = plt.subplots()
+    ax.plot([1,2,3], label='label')
+    ax.legend().set_visible(False)
+    _assert_output_equal(fake_renderer_output(fig, FakeRenderer),
+                         """
+                         opening figure
+                         opening axes
+                         draw path with 3 vertices
+                         opening legend
+                         closing legend
+                         closing axes
+                         closing figure
+                         """)
+

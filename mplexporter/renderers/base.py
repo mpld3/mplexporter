@@ -57,6 +57,16 @@ class Renderer(object):
         self._current_ax = None
         self._ax_props = {}
 
+    @contextmanager
+    def draw_legend(self, legend, props):
+        self._current_legend = legend
+        self._legend_props = props
+        self.open_legend(legend=legend, props=props)
+        yield
+        self.close_legend(legend=legend)
+        self._current_legend = None
+        self._legend_props = {}
+
     # Following are the functions which should be overloaded in subclasses
 
     def open_figure(self, fig, props):
@@ -104,6 +114,30 @@ class Renderer(object):
         ----------
         ax : matplotlib.Axes
             The Axes which is finished being drawn.
+        """
+        pass
+
+    def open_legend(self, legend, props):
+        """
+        Beging commands for a particular legend.
+
+        Parameters
+        ----------
+        legend : matplotlib.legend.Legend
+                The Legend that will contain the ensuing elements
+        props : dictionary
+                The dictionary of legend properties
+        """
+        pass
+
+    def close_legend(self, legend):
+        """
+        Finish commands for a particular legend.
+
+        Parameters
+        ----------
+        legend : matplotlib.legend.Legend
+                The Legend which is finished being drawn
         """
         pass
 
