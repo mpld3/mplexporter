@@ -128,6 +128,7 @@ class Renderer(object):
         props : dictionary
                 The dictionary of legend properties
         """
+        pass
 
     def close_legend(self, legend):
         """
@@ -138,6 +139,7 @@ class Renderer(object):
         legend : matplotlib.legend.Legend
                 The Legend which is finished being drawn
         """
+        pass
 
     def draw_marked_line(self, data, coordinates, linestyle, markerstyle,
                          label, mplobj=None):
