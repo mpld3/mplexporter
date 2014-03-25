@@ -141,22 +141,30 @@ class Exporter(object):
 
             legend = ax.get_legend()
             if legend is not None:
-                for child in ax.legend_.get_children():
-                    # force a large zorder so it appears on top
-                    child.set_zorder(1E6 + child.get_zorder())
-                    if isinstance(child, matplotlib.patches.Patch):
-                        self.draw_patch(ax, child, force_trans=ax.transAxes)
-                    elif isinstance(child, matplotlib.text.Text):
-                        if not (child is ax.legend_.get_children()[-1]
-                                and child.get_text() == 'None'):
-                            self.draw_text(ax, child, force_trans=ax.transAxes)
-                    elif isinstance(child, matplotlib.lines.Line2D):
-                        self.draw_line(ax, child, force_trans=ax.transAxes)
-                    elif isinstance(child, matplotlib.offsetbox.PackerBase):
-                        pass
-                    else:
-                        warnings.warn("Legend element %s not impemented"
-                                      & child)
+                self.draw_children(ax, ax.legend_, highz=True, 
+                        force_trans=ax.transAxes)
+
+    def draw_children(self, ax, container, highz=False, **kwargs):
+        for child in container.get_children():
+            if highz:
+                # force a large zorder so it appears on top
+                child.set_zorder(1E6 + child.get_zorder())
+            if isinstance(child, matplotlib.patches.Patch):
+                self.draw_patch(ax, child, **kwargs)
+            elif isinstance(child, matplotlib.text.Text):
+                if not (child is ax.legend_.get_children()[-1]
+                        and child.get_text() == 'None'):
+                    self.draw_text(ax, child, **kwargs)
+            elif isinstance(child, matplotlib.lines.Line2D):
+                self.draw_line(ax, child, **kwargs)
+            #elif isinstance(child, matplotlib.offsetbox.PackerBase) \
+            #    or isinstance(child, matplotlib.offsetbox.TextArea) \
+            #    or isinstance(child, matplotlib.offsetbox.DrawingArea):
+            elif 'get_children' in dir(child):
+                self.draw_children(ax, child, highz=highz,  **kwargs)
+            else:
+                warnings.warn("Legend element %s not impemented"
+                              & child)
 
     def draw_line(self, ax, line, force_trans=None):
         """Process a matplotlib line and call renderer.draw_line"""
