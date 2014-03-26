@@ -178,3 +178,28 @@ def test_legend():
                          closing figure
                          """)
 
+def test_legend_dots():
+    fig, ax = plt.subplots()
+    ax.plot([1,2,3], label='label')
+    ax.plot([2,2,2], 'o', label='dots')
+    ax.legend().set_visible(True)
+    _assert_output_equal(fake_renderer_output(fig, FakeRenderer),
+                         """
+                         opening figure
+                         opening axes
+                         draw path with 3 vertices
+                         draw path with 25 vertices
+                         draw path with 25 vertices
+                         draw path with 25 vertices
+                         opening legend
+                         draw path with 2 vertices
+                         draw text 'label' None
+                         draw path with 25 vertices
+                         draw path with 25 vertices
+                         draw text 'dots' None
+                         draw path with 5 vertices
+                         closing legend
+                         closing axes
+                         closing figure
+                         """)
+
