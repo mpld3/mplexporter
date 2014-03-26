@@ -146,20 +146,32 @@ class Exporter(object):
                     if props['visible']:
                         self.crawl_legend(ax, legend)
 
-    def crawl_legend(self, ax, legend):
-        for child in legend.get_children():
+    def crawl_legend(self, ax, obj, used_objects=set()):
+        """
+        Recursively look through objects in legend children
+        """
+        for child in obj.get_children():
+            # skip things we've alread drawn
+            if child in used_objects:
+                continue
+            else:
+                used_objects.add(child)
+
             # force a large zorder so it appears on top
             child.set_zorder(1E6 + child.get_zorder())
+
+            # What kind of object...
             if isinstance(child, matplotlib.patches.Patch):
                 self.draw_patch(ax, child, force_trans=ax.transAxes)
             elif isinstance(child, matplotlib.text.Text):
-                if not (child is legend.get_children()[-1]
+                if not (child is obj.get_children()[-1]
                         and child.get_text() == 'None'):
                     self.draw_text(ax, child, force_trans=ax.transAxes)
             elif isinstance(child, matplotlib.lines.Line2D):
                 self.draw_line(ax, child, force_trans=ax.transAxes)
-            elif isinstance(child, matplotlib.offsetbox.PackerBase):
-                pass
+            elif child.get_children() is not None \
+                    and len(child.get_children())>0:
+                self.crawl_legend(ax, child, used_objects=used_objects)
             else:
                 warnings.warn("Legend element %s not impemented" & child)
 
