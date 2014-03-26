@@ -304,13 +304,12 @@ def iter_all_children(obj, skipContainers=False):
 
     if skipContainers is true, only childless objects are returned.
     """
-    if hasattr(obj, 'get_children') and len(obj.get_children())>0:
+    if hasattr(obj, 'get_children') and len(obj.get_children()) > 0:
         for child in obj.get_children():
             if not skipContainers:
                 yield child
             # could use `yield from` in python 3...
-            for grandchild in iter_all_children(child,
-                    skipContainers=skipContainers):
+            for grandchild in iter_all_children(child,skipContainers):
                 yield grandchild
     else:
         yield obj
