@@ -172,7 +172,6 @@ class Exporter(object):
             except NotImplementedError:
                 warnings.warn("Legend element %s not impemented" % child)
 
-
     def draw_line(self, ax, line, force_trans=None):
         """Process a matplotlib line and call renderer.draw_line"""
         coordinates, data = self.process_transform(line.get_transform(),

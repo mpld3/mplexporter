@@ -297,7 +297,8 @@ def get_axes_properties(ax):
 
     return props
 
-def iter_all_children(obj, skipContainers=False):    
+
+def iter_all_children(obj, skipContainers=False):
     """
     Returns an iterator over all childen and nested children using
     obj's get_children() method
@@ -309,10 +310,11 @@ def iter_all_children(obj, skipContainers=False):
             if not skipContainers:
                 yield child
             # could use `yield from` in python 3...
-            for grandchild in iter_all_children(child,skipContainers):
+            for grandchild in iter_all_children(child, skipContainers):
                 yield grandchild
     else:
         yield obj
+
 
 def get_legend_properties(ax, legend):
     handles, labels = ax.get_legend_handles_labels()
