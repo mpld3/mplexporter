@@ -183,19 +183,16 @@ def test_legend_dots():
     ax.plot([1,2,3], label='label')
     ax.plot([2,2,2], 'o', label='dots')
     ax.legend().set_visible(True)
-    _assert_output_equal(fake_renderer_output(fig, FakeRenderer),
+    _assert_output_equal(fake_renderer_output(fig, FullFakeRenderer),
                          """
                          opening figure
                          opening axes
-                         draw path with 3 vertices
-                         draw path with 25 vertices
-                         draw path with 25 vertices
-                         draw path with 25 vertices
+                         draw line with 3 points
+                         draw 3 markers
                          opening legend
-                         draw path with 2 vertices
+                         draw line with 2 points
                          draw text 'label' None
-                         draw path with 25 vertices
-                         draw path with 25 vertices
+                         draw 2 markers
                          draw text 'dots' None
                          draw path with 5 vertices
                          closing legend
