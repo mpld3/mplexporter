@@ -16,7 +16,6 @@ def fake_renderer_output(fig, Renderer):
 
 
 def _assert_output_equal(text1, text2):
-    print text1
     for line1, line2 in zip(text1.strip().split(), text2.strip().split()):
         assert line1 == line2
 
