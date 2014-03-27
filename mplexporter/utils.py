@@ -8,6 +8,8 @@ import base64
 
 import numpy as np
 
+import warnings
+
 import matplotlib
 from matplotlib.colors import colorConverter
 from matplotlib.path import Path
