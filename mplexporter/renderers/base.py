@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib import transforms
 
 from .. import utils
+from .. import _py3k_compat as py3k
 
 
 class Renderer(object):
@@ -202,7 +203,7 @@ class Renderer(object):
                     edgecolor, styles['linewidth'], facecolor]
 
         it = itertools
-        return it.islice(it.izip(*it.imap(it.cycle, elements)), N)
+        return it.islice(py3k.zip(*py3k.map(it.cycle, elements)), N)
 
     def draw_path_collection(self, paths, path_coordinates, path_transforms,
                              offsets, offset_coordinates, offset_order,

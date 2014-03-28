@@ -78,7 +78,7 @@ class Exporter(object):
             Data transformed to match the given coordinate code.
             Returned only if data is specified
         """
-        if transform.contains_branch(transforms.BlendedGenericTransform):
+        if isinstance(transform, transforms.BlendedGenericTransform):
             warnings.warn("Blended transforms not yet supported. "
                           "Zoom behavior may not work as expected.")
 

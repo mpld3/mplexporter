@@ -6,6 +6,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import numpy as np
+from numpy.testing import assert_warns
 
 
 def fake_renderer_output(fig, Renderer):
@@ -199,3 +200,8 @@ def test_legend_dots():
                          closing figure
                          """)
 
+def test_blended():
+    fig, ax = plt.subplots()
+    ax.axvline(0)
+    assert_warns(UserWarning, fake_renderer_output, fig, FakeRenderer)
+    
