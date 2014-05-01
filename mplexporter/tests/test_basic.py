@@ -149,15 +149,14 @@ def test_multiaxes():
 
 def test_image():
     np.random.seed(0)  # image size depends on the seed
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(2, 2))
     ax.imshow(np.random.random((10, 10)),
               cmap=plt.cm.jet, interpolation='nearest')
-
     _assert_output_equal(fake_renderer_output(fig, FakeRenderer),
                          """
                          opening figure
                          opening axes
-                         draw image of size 2848
+                         draw image of size 1240 
                          closing axes
                          closing figure
                          """)
