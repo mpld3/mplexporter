@@ -1,5 +1,5 @@
 from numpy.testing import assert_allclose, assert_equal
-import matplotlib.pyplot as plt
+from . import plt
 from .. import utils
 
 
@@ -9,3 +9,15 @@ def test_path_data():
 
     assert_allclose(vertices.shape, (25, 2))
     assert_equal(codes, ['M', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'Z'])
+
+
+def test_linestyle():
+    linestyles = {'solid': 'none', '-': 'none',
+                  'dashed': '6,6', '--': '6,6',
+                  'dotted': '2,2', ':': '2,2',
+                  'dashdot': '4,4,2,4', '-.': '4,4,2,4',
+                  '': None, 'None': None}
+
+    for ls, result in linestyles.items():
+        line, = plt.plot([1, 2, 3], linestyle=ls)
+        assert_equal(utils.get_dasharray(line), result)

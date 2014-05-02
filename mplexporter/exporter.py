@@ -181,7 +181,7 @@ class Exporter(object):
                                                    ax, line.get_xydata(),
                                                    force_trans=force_trans)
         linestyle = utils.get_line_style(line)
-        if linestyle['dasharray'] in ['None', 'none', None]:
+        if linestyle['dasharray'] is None:
             linestyle = None
         markerstyle = utils.get_marker_style(line)
         if (markerstyle['marker'] in ['None', 'none', None]
