@@ -209,6 +209,8 @@ def get_axis_properties(axis):
     formatter = axis.get_major_formatter()
     if isinstance(formatter, ticker.NullFormatter):
         props['tickformat'] = ""
+    elif isinstance(formatter, ticker.FixedFormatter):
+        props['tickformat'] = list(formatter.seq)
     elif not any(label.get_visible() for label in axis.get_ticklabels()):
         props['tickformat'] = ""
     else:
@@ -255,6 +257,8 @@ def get_axes_properties(ax):
              'axesbgalpha': ax.patch.get_alpha(),
              'bounds': ax.get_position().bounds,
              'dynamic': ax.get_navigate(),
+             'axison': ax.axison,
+             'frame_on': ax.get_frame_on(),
              'axes': [get_axis_properties(ax.xaxis),
                       get_axis_properties(ax.yaxis)]}
 

@@ -21,3 +21,14 @@ def test_linestyle():
     for ls, result in linestyles.items():
         line, = plt.plot([1, 2, 3], linestyle=ls)
         assert_equal(utils.get_dasharray(line), result)
+
+
+def test_axis_w_fixed_formatter():
+    positions, labels = [0, 1, 10], ['A','B','C']
+
+    plt.xticks(positions, labels)
+    props = utils.get_axis_properties(plt.gca().xaxis)
+
+    assert_equal(props['tickvalues'], positions)
+    assert_equal(props['tickformat'], labels)
+
