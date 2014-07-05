@@ -27,20 +27,20 @@ def color_to_hex(color):
         return '#{0:02X}{1:02X}{2:02X}'.format(*(int(255 * c) for c in rgb))
 
 
-def many_to_one(input_dict):
+def _many_to_one(input_dict):
     """Convert a many-to-one mapping to a one-to-one mapping"""
     return dict((key, val)
                 for keys, val in input_dict.items()
                 for key in keys)
 
-LINESTYLES = many_to_one({('solid', '-', (None, None)): "10,0",
-                          ('dashed', '--'): "6,6",
-                          ('dotted', ':'): "2,2",
-                          ('dashdot', '-.'): "4,4,2,4",
-                          ('', ' ', 'None', 'none'): "none"})
+LINESTYLES = _many_to_one({('solid', '-', (None, None)): 'none',
+                           ('dashed', '--'): "6,6",
+                           ('dotted', ':'): "2,2",
+                           ('dashdot', '-.'): "4,4,2,4",
+                           ('', ' ', 'None', 'none'): None})
 
 
-def get_dasharray(obj, i=None):
+def get_dasharray(obj):
     """Get an SVG dash array for the given matplotlib linestyle
 
     Parameters
@@ -48,7 +48,6 @@ def get_dasharray(obj, i=None):
     obj : matplotlib object
         The matplotlib line or path object, which must have a get_linestyle()
         method which returns a valid matplotlib line code
-    i : integer (optional)
 
     Returns
     -------
@@ -59,14 +58,11 @@ def get_dasharray(obj, i=None):
         return ','.join(map(str, obj._dashSeq))
     else:
         ls = obj.get_linestyle()
-        if i is not None:
-            ls = ls[i]
-
-        dasharray = LINESTYLES.get(ls, None)
-        if dasharray is None:
-            warnings.warn("dash style '{0}' not understood: "
-                          "defaulting to solid.".format(ls))
-            dasharray = LINESTYLES['-']
+        dasharray = LINESTYLES.get(ls, 'not found')
+        if dasharray == 'not found':
+            warnings.warn("line style '{0}' not understood: "
+                          "defaulting to solid line.".format(ls))
+            dasharray = LINESTYLES['solid']
         return dasharray
 
 
@@ -247,7 +243,7 @@ def get_grid_style(axis):
                     dasharray=dasharray,
                     alpha=alpha)
     else:
-        return {"gridOn":False}
+        return {"gridOn": False}
 
 
 def get_figure_properties(fig):
@@ -326,7 +322,7 @@ def get_legend_properties(ax, legend):
     handles, labels = ax.get_legend_handles_labels()
     visible = legend.get_visible()
     return {'handles': handles, 'labels': labels, 'visible': visible}
-    
+
 
 def image_to_base64(image):
     """

@@ -1,12 +1,9 @@
-from ..exporter import Exporter
-from ..renderers import FakeRenderer, FullFakeRenderer
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
 import numpy as np
 from numpy.testing import assert_warns
+
+from ..exporter import Exporter
+from ..renderers import FakeRenderer, FullFakeRenderer
+from . import plt
 
 
 def fake_renderer_output(fig, Renderer):
@@ -165,7 +162,7 @@ def test_image():
 
 def test_legend():
     fig, ax = plt.subplots()
-    ax.plot([1,2,3], label='label')
+    ax.plot([1, 2, 3], label='label')
     ax.legend().set_visible(False)
     _assert_output_equal(fake_renderer_output(fig, FakeRenderer),
                          """
@@ -178,10 +175,11 @@ def test_legend():
                          closing figure
                          """)
 
+
 def test_legend_dots():
     fig, ax = plt.subplots()
-    ax.plot([1,2,3], label='label')
-    ax.plot([2,2,2], 'o', label='dots')
+    ax.plot([1, 2, 3], label='label')
+    ax.plot([2, 2, 2], 'o', label='dots')
     ax.legend().set_visible(True)
     _assert_output_equal(fake_renderer_output(fig, FullFakeRenderer),
                          """
@@ -200,8 +198,8 @@ def test_legend_dots():
                          closing figure
                          """)
 
+
 def test_blended():
     fig, ax = plt.subplots()
     ax.axvline(0)
     assert_warns(UserWarning, fake_renderer_output, fig, FakeRenderer)
-    
