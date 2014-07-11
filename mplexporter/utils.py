@@ -174,6 +174,7 @@ def get_text_style(text):
     style['color'] = color_to_hex(text.get_color())
     style['halign'] = text.get_horizontalalignment()  # left, center, right
     style['valign'] = text.get_verticalalignment()  # baseline, center, top
+    style['malign'] = text._multialignment # text alignment when '\n' in text
     style['rotation'] = text.get_rotation()
     style['zorder'] = text.get_zorder()
     return style
