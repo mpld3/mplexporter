@@ -230,7 +230,7 @@ def get_axis_properties(axis):
 
     # Get associated grid
     props['grid'] = get_grid_style(axis)
-    
+
     # get axis visibility
     props['visible'] = axis.get_visible()
 
