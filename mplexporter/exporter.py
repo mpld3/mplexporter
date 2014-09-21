@@ -10,7 +10,7 @@ from . import utils
 
 import matplotlib
 from matplotlib import transforms, collections
-
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 class Exporter(object):
     """Matplotlib Exporter
@@ -43,7 +43,6 @@ class Exporter(object):
         # Calling savefig executes the draw() command, putting elements
         # in the correct place.
         if fig.canvas is None:
-            from matplotlib.backends.backend_agg import FigureCanvasAgg
             canvas = FigureCanvasAgg(fig)
         fig.savefig(io.BytesIO(), format='png', dpi=fig.dpi)
         if self.close_mpl:
