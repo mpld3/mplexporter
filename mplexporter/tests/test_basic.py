@@ -125,6 +125,23 @@ def test_path():
                          closing figure
                          """)
 
+def test_Figure():
+    """ if the fig is not associated with a canvas, FakeRenderer shall
+    not fail. """
+    fig = plt.Figure()
+    ax = fig.add_subplot(111)
+    ax.add_patch(plt.Circle((0, 0), 1))
+    ax.add_patch(plt.Rectangle((0, 0), 1, 2))
+
+    _assert_output_equal(fake_renderer_output(fig, FakeRenderer),
+                         """
+                         opening figure
+                         opening axes
+                         draw path with 25 vertices
+                         draw path with 4 vertices
+                         closing axes
+                         closing figure
+                         """)
 
 def test_multiaxes():
     fig, ax = plt.subplots(2)
