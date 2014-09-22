@@ -230,6 +230,9 @@ def get_axis_properties(axis):
     # Get associated grid
     props['grid'] = get_grid_style(axis)
 
+    # get axis visibility
+    props['visible'] = axis.get_visible()
+
     return props
 
 
@@ -260,6 +263,7 @@ def get_axes_properties(ax):
              'dynamic': ax.get_navigate(),
              'axison': ax.axison,
              'frame_on': ax.get_frame_on(),
+             'patch_visible':ax.patch.get_visible(),
              'axes': [get_axis_properties(ax.xaxis),
                       get_axis_properties(ax.yaxis)]}
 
