@@ -292,7 +292,7 @@ def get_axes_properties(ax):
 
         if scale not in ['date', 'linear', 'log']:
             raise ValueError("Unknown axis scale: "
-                             "{0}".format(axis[axname].get_scale()))
+                             "{0}".format(axis.get_scale()))
 
         props[axname + 'scale'] = scale
         props[axname + 'lim'] = lim
