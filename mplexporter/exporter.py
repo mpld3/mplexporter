@@ -164,8 +164,7 @@ class Exporter(object):
                 if isinstance(child, matplotlib.patches.Patch):
                     self.draw_patch(ax, child, force_trans=ax.transAxes)
                 elif isinstance(child, matplotlib.text.Text):
-                    if not (child is legend.get_children()[-1]
-                            and child.get_text() == 'None'):
+                    if child.get_text() != 'None':
                         self.draw_text(ax, child, force_trans=ax.transAxes)
                 elif isinstance(child, matplotlib.lines.Line2D):
                     self.draw_line(ax, child, force_trans=ax.transAxes)
