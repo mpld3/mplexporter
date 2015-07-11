@@ -159,6 +159,10 @@ class Exporter(object):
             # force a large zorder so it appears on top
             child.set_zorder(1E6 + child.get_zorder())
 
+            # reorder border box to make sure marks are visible
+            if isinstance(child, matplotlib.patches.FancyBboxPatch):
+                child.set_zorder(child.get_zorder()-1)
+
             try:
                 # What kind of object...
                 if isinstance(child, matplotlib.patches.Patch):
