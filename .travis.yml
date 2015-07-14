@@ -1,3 +1,4 @@
+sudo: false
 language: python
 
 python:
@@ -22,7 +23,7 @@ before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
-  - export PATH=/home/travis/anaconda/bin:$PATH
+  - export PATH="$HOME/miniconda/bin:$PATH"
   # Learned the hard way: miniconda is not always up-to-date with conda.
   - conda update --yes conda
 
