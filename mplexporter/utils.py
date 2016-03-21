@@ -138,6 +138,7 @@ def get_line_style(line):
     style['linewidth'] = line.get_linewidth()
     style['dasharray'] = get_dasharray(line)
     style['zorder'] = line.get_zorder()
+    style['drawstyle'] = line.get_drawstyle()
     return style
 
 
