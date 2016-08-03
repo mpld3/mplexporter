@@ -186,6 +186,10 @@ class Exporter(object):
         if (linestyle['dasharray'] is None
                 and linestyle['drawstyle'] is 'default'):
             linestyle = None
+        elif linestyle['dasharray'] is None:
+            #fix for matplotlib sometimes returning unicode in python2
+            if linestyle['drawstyle'].encode('UTF-8') == 'default':
+                linestyle = None
         markerstyle = utils.get_marker_style(line)
         if (markerstyle['marker'] in ['None', 'none', None]
                 or markerstyle['markerpath'][0].size == 0):
