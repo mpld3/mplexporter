@@ -189,7 +189,7 @@ class Renderer(object):
         """Build an iterator over the elements of the path collection"""
         N = max(len(paths), len(offsets))
 
-        if not path_transforms:
+        if path_transforms is None:
             path_transforms = [np.eye(3)]
 
         edgecolor = styles['edgecolor']
