@@ -194,7 +194,7 @@ class Renderer(object):
         # Before mpl 1.4.0, path_transform can be a false-y value, not a valid
         # transformation matrix.
         if LooseVersion(mpl.__version__) < LooseVersion('1.4.0'):
-            if not path_transforms:
+            if path_transforms is None:
                 path_transforms = [np.eye(3)]
 
         edgecolor = styles['edgecolor']
