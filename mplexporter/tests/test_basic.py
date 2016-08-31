@@ -208,7 +208,7 @@ def test_legend_dots():
                          draw text 'label' None
                          draw 2 markers
                          draw text 'dots' None
-                         draw path with 5 vertices
+                         draw path with 4 vertices
                          closing legend
                          closing axes
                          closing figure
