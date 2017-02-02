@@ -23,8 +23,9 @@ def color_to_hex(color):
     if color is None or colorConverter.to_rgba(color)[3] == 0:
         return 'none'
     else:
-        rgb = colorConverter.to_rgb(color)
-        return '#{0:02X}{1:02X}{2:02X}'.format(*(int(255 * c) for c in rgb))
+        c = colorConverter.to_rgba(color)
+        return "rgba(" + ", ".join(str(int(np.round(val * 255)))
+                                        for val in c[:3])+', '+str(c[3])+")"
 
 
 def _many_to_one(input_dict):
