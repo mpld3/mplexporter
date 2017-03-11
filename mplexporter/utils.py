@@ -18,7 +18,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib import ticker
 
 
-def color_to_hex(color):
+def export_color(color):
     """Convert matplotlib color code to hex color code"""
     if color is None or colorConverter.to_rgba(color)[3] == 0:
         return 'none'
@@ -118,9 +118,9 @@ def get_path_style(path, fill=True):
     style['alpha'] = path.get_alpha()
     if style['alpha'] is None:
         style['alpha'] = 1
-    style['edgecolor'] = color_to_hex(path.get_edgecolor())
+    style['edgecolor'] = export_color(path.get_edgecolor())
     if fill:
-        style['facecolor'] = color_to_hex(path.get_facecolor())
+        style['facecolor'] = export_color(path.get_facecolor())
     else:
         style['facecolor'] = 'none'
     style['edgewidth'] = path.get_linewidth()
@@ -135,7 +135,7 @@ def get_line_style(line):
     style['alpha'] = line.get_alpha()
     if style['alpha'] is None:
         style['alpha'] = 1
-    style['color'] = color_to_hex(line.get_color())
+    style['color'] = export_color(line.get_color())
     style['linewidth'] = line.get_linewidth()
     style['dasharray'] = get_dasharray(line)
     style['zorder'] = line.get_zorder()
@@ -150,8 +150,8 @@ def get_marker_style(line):
     if style['alpha'] is None:
         style['alpha'] = 1
 
-    style['facecolor'] = color_to_hex(line.get_markerfacecolor())
-    style['edgecolor'] = color_to_hex(line.get_markeredgecolor())
+    style['facecolor'] = export_color(line.get_markerfacecolor())
+    style['edgecolor'] = export_color(line.get_markeredgecolor())
     style['edgewidth'] = line.get_markeredgewidth()
 
     style['marker'] = line.get_marker()
@@ -173,7 +173,7 @@ def get_text_style(text):
     if style['alpha'] is None:
         style['alpha'] = 1
     style['fontsize'] = text.get_size()
-    style['color'] = color_to_hex(text.get_color())
+    style['color'] = export_color(text.get_color())
     style['halign'] = text.get_horizontalalignment()  # left, center, right
     style['valign'] = text.get_verticalalignment()  # baseline, center, top
     style['malign'] = text._multialignment # text alignment when '\n' in text
@@ -241,7 +241,7 @@ def get_axis_properties(axis):
 def get_grid_style(axis):
     gridlines = axis.get_gridlines()
     if axis._gridOnMajor and len(gridlines) > 0:
-        color = color_to_hex(gridlines[0].get_color())
+        color = export_color(gridlines[0].get_color())
         alpha = gridlines[0].get_alpha()
         dasharray = get_dasharray(gridlines[0])
         return dict(gridOn=True,
@@ -259,7 +259,7 @@ def get_figure_properties(fig):
 
 
 def get_axes_properties(ax):
-    props = {'axesbg': color_to_hex(ax.patch.get_facecolor()),
+    props = {'axesbg': export_color(ax.patch.get_facecolor()),
              'axesbgalpha': ax.patch.get_alpha(),
              'bounds': ax.get_position().bounds,
              'dynamic': ax.get_navigate(),
