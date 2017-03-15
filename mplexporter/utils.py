@@ -19,7 +19,7 @@ from matplotlib import ticker
 
 
 def export_color(color):
-    """Convert matplotlib color code to hex color code"""
+    """Convert matplotlib color code to hex color or RGBA color"""
     if color is None or colorConverter.to_rgba(color)[3] == 0:
         return 'none'
     elif colorConverter.to_rgba(color)[3] == 1:
