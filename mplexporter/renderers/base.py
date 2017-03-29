@@ -265,8 +265,8 @@ class Renderer(object):
             # This is a hack:
             if path_coordinates == "figure":
                 path_coordinates = "points"
-            style = {"edgecolor": utils.color_to_hex(ec),
-                     "facecolor": utils.color_to_hex(fc),
+            style = {"edgecolor": utils.export_color(ec),
+                     "facecolor": utils.export_color(fc),
                      "edgewidth": lw,
                      "dasharray": "10,0",
                      "alpha": styles['alpha'],
