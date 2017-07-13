@@ -1,5 +1,5 @@
 from numpy.testing import assert_allclose, assert_equal
-from . import plt
+from . import matplotlib, plt
 from .. import utils
 
 
@@ -12,11 +12,18 @@ def test_path_data():
 
 
 def test_linestyle():
-    linestyles = {'solid': 'none', '-': 'none',
-                  'dashed': '6,6', '--': '6,6',
-                  'dotted': '2,2', ':': '2,2',
-                  'dashdot': '4,4,2,4', '-.': '4,4,2,4',
-                  '': None, 'None': None}
+    if matplotlib.__version__ >= '2':
+        linestyles = {'solid': 'none', '-': 'none',
+                      'dashed': '6.0,6.0', '--': '6.0,6.0',
+                      'dotted': '1.0,3.0', ':': '1.0,3.0',
+                      'dashdot': '3.0,5.0,1.0,5.0', '-.': '3.0,5.0,1.0,5.0',
+                      '': None, 'None': None}
+    else:
+        linestyles = {'solid': 'none', '-': 'none',
+                      'dashed': '6,6', '--': '6,6',
+                      'dotted': '2,2', ':': '2,2',
+                      'dashdot': '4,4,2,4', '-.': '4,4,2,4',
+                      '': None, 'None': None}
 
     for ls, result in linestyles.items():
         line, = plt.plot([1, 2, 3], linestyle=ls)
