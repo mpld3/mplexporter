@@ -11,6 +11,7 @@ from . import utils
 import matplotlib
 from matplotlib import transforms, collections
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+import numpy as np
 
 class Exporter(object):
     """Matplotlib Exporter
@@ -245,7 +246,8 @@ class Exporter(object):
             offsets = inv.transform(offsets)
             offset_coords = 'data'
 
-        path_coords = 'display'
+        path_coords = self.process_transform(
+            transform, ax, force_trans=force_pathtrans)
 
         processed_paths = [utils.SVG_path(path) for path in paths]
 
@@ -257,6 +259,10 @@ class Exporter(object):
         except AttributeError:
             # matplotlib 1.4: path transforms are already numpy arrays.
             pass
+        if path_coords == 'axes':
+            path_transforms = [np.diag(np.diag(t) / np.diag(transOffset))
+                               for t in path_transforms]
+            path_coords = 'display'
 
         styles = {'linewidth': collection.get_linewidths(),
                   'facecolor': collection.get_facecolors(),
