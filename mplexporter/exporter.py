@@ -239,13 +239,15 @@ class Exporter(object):
 
         offset_coords, offsets = self.process_transform(
             transOffset, ax, offsets, force_trans=force_offsettrans)
-        path_coords = self.process_transform(
-            transform, ax, force_trans=force_pathtrans)
+        if offset_coords == 'display':
+            # Transform offsets from display to data coordinates
+            inv = ax.transData.inverted()
+            offsets = inv.transform(offsets)
+            offset_coords = 'data'
+
+        path_coords = 'display'
 
         processed_paths = [utils.SVG_path(path) for path in paths]
-        processed_paths = [(self.process_transform(
-            transform, ax, path[0], force_trans=force_pathtrans)[1], path[1])
-                           for path in processed_paths]
 
         path_transforms = collection.get_transforms()
         try:
