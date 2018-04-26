@@ -13,9 +13,9 @@ def test_path_data():
 
 def test_linestyle():
     linestyles = {'solid': 'none', '-': 'none',
-                  'dashed': '6,6', '--': '6,6',
-                  'dotted': '2,2', ':': '2,2',
-                  'dashdot': '4,4,2,4', '-.': '4,4,2,4',
+                  'dashed': '3.7,1.6', '--': '3.7,1.6',
+                  'dotted': '1.0,1.65', ':': '1.0,1.65',
+                  'dashdot': '6.4,1.6,1.0,1.6', '-.': '6.4,1.6,1.0,1.6',
                   '': None, 'None': None}
 
     for ls, result in linestyles.items():
