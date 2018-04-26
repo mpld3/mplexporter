@@ -54,6 +54,7 @@ def get_dasharray(obj):
     dasharray : string
         The HTML/SVG dasharray code associated with the object.
     """
+    # NOTE: _us_dashSeq is an undocumented property and is liable to change.
     if obj.__dict__.get('_us_dashSeq', None) is not None:
         return ','.join(map(str, obj._us_dashSeq))
     else:
