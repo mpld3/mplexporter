@@ -177,7 +177,7 @@ def test_image():
                          """
                          opening figure
                          opening axes
-                         draw image of size 1240 
+                         draw image of size 1240
                          closing axes
                          closing figure
                          """)
