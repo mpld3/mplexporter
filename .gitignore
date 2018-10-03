@@ -44,3 +44,6 @@ nosetests.xml
 
 # os x files
 .DS_Store
+
+# VIM
+*.sw*
