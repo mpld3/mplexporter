@@ -206,17 +206,22 @@ def get_axis_properties(axis):
     # Use tick values if appropriate
     locator = axis.get_major_locator()
     props['nticks'] = len(locator())
-    if isinstance(locator, ticker.FixedLocator):
+    if type(locator) in [ticker.FixedLocator, ticker.AutoLocator]:
         props['tickvalues'] = list(locator())
     else:
         props['tickvalues'] = None
 
     # Find tick formats
+    props['tickformat_formatter'] = ""
     formatter = axis.get_major_formatter()
     if isinstance(formatter, ticker.NullFormatter):
         props['tickformat'] = ""
+    elif isinstance(formatter, ticker.IndexFormatter):
+        props['tickformat'] = [text.get_text() for text in axis.get_ticklabels()]
+        props['tickformat_formatter'] = "index"
     elif isinstance(formatter, ticker.FixedFormatter):
         props['tickformat'] = list(formatter.seq)
+        props['tickformat_formatter'] = "fixed"
     elif not any(label.get_visible() for label in axis.get_ticklabels()):
         props['tickformat'] = ""
     else:
