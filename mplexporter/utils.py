@@ -190,7 +190,6 @@ def get_axis_properties(axis):
     props = {}
     label1On = axis._major_tick_kw.get('label1On', True)
 
-    print "here"
     if isinstance(axis, matplotlib.axis.XAxis):
         if label1On:
             props['position'] = "bottom"
