@@ -18,17 +18,13 @@ from matplotlib.transforms import Affine2D
 from matplotlib import ticker
 
 
-def export_color(color):
-    """Convert matplotlib color code to hex color or RGBA color"""
+def color_to_hex(color):
+    """Convert matplotlib color code to hex color code"""
     if color is None or colorConverter.to_rgba(color)[3] == 0:
         return 'none'
-    elif colorConverter.to_rgba(color)[3] == 1:
+    else:
         rgb = colorConverter.to_rgb(color)
         return '#{0:02X}{1:02X}{2:02X}'.format(*(int(255 * c) for c in rgb))
-    else:
-        c = colorConverter.to_rgba(color)
-        return "rgba(" + ", ".join(str(int(np.round(val * 255)))
-                                        for val in c[:3])+', '+str(c[3])+")"
 
 
 def _many_to_one(input_dict):
@@ -121,9 +117,9 @@ def get_path_style(path, fill=True):
     style['alpha'] = path.get_alpha()
     if style['alpha'] is None:
         style['alpha'] = 1
-    style['edgecolor'] = export_color(path.get_edgecolor())
+    style['edgecolor'] = color_to_hex(path.get_edgecolor())
     if fill:
-        style['facecolor'] = export_color(path.get_facecolor())
+        style['facecolor'] = color_to_hex(path.get_facecolor())
     else:
         style['facecolor'] = 'none'
     style['edgewidth'] = path.get_linewidth()
@@ -138,7 +134,7 @@ def get_line_style(line):
     style['alpha'] = line.get_alpha()
     if style['alpha'] is None:
         style['alpha'] = 1
-    style['color'] = export_color(line.get_color())
+    style['color'] = color_to_hex(line.get_color())
     style['linewidth'] = line.get_linewidth()
     style['dasharray'] = get_dasharray(line)
     style['zorder'] = line.get_zorder()
@@ -153,8 +149,8 @@ def get_marker_style(line):
     if style['alpha'] is None:
         style['alpha'] = 1
 
-    style['facecolor'] = export_color(line.get_markerfacecolor())
-    style['edgecolor'] = export_color(line.get_markeredgecolor())
+    style['facecolor'] = color_to_hex(line.get_markerfacecolor())
+    style['edgecolor'] = color_to_hex(line.get_markeredgecolor())
     style['edgewidth'] = line.get_markeredgewidth()
 
     style['marker'] = line.get_marker()
@@ -176,7 +172,7 @@ def get_text_style(text):
     if style['alpha'] is None:
         style['alpha'] = 1
     style['fontsize'] = text.get_size()
-    style['color'] = export_color(text.get_color())
+    style['color'] = color_to_hex(text.get_color())
     style['halign'] = text.get_horizontalalignment()  # left, center, right
     style['valign'] = text.get_verticalalignment()  # baseline, center, top
     style['malign'] = text._multialignment # text alignment when '\n' in text
@@ -190,6 +186,7 @@ def get_axis_properties(axis):
     props = {}
     label1On = axis._major_tick_kw.get('label1On', True)
 
+    print "here"
     if isinstance(axis, matplotlib.axis.XAxis):
         if label1On:
             props['position'] = "bottom"
@@ -206,17 +203,22 @@ def get_axis_properties(axis):
     # Use tick values if appropriate
     locator = axis.get_major_locator()
     props['nticks'] = len(locator())
-    if isinstance(locator, ticker.FixedLocator):
+    if type(locator) in [ticker.FixedLocator, ticker.AutoLocator]:
         props['tickvalues'] = list(locator())
     else:
         props['tickvalues'] = None
 
     # Find tick formats
+    props['tickformat_formatter'] = ""
     formatter = axis.get_major_formatter()
     if isinstance(formatter, ticker.NullFormatter):
         props['tickformat'] = ""
+    elif isinstance(formatter, ticker.IndexFormatter):
+        props['tickformat'] = [text.get_text() for text in axis.get_ticklabels()]
+        props['tickformat_formatter'] = "index"
     elif isinstance(formatter, ticker.FixedFormatter):
         props['tickformat'] = list(formatter.seq)
+        props['tickformat_formatter'] = "fixed"
     elif not any(label.get_visible() for label in axis.get_ticklabels()):
         props['tickformat'] = ""
     else:
@@ -244,7 +246,7 @@ def get_axis_properties(axis):
 def get_grid_style(axis):
     gridlines = axis.get_gridlines()
     if axis._gridOnMajor and len(gridlines) > 0:
-        color = export_color(gridlines[0].get_color())
+        color = color_to_hex(gridlines[0].get_color())
         alpha = gridlines[0].get_alpha()
         dasharray = get_dasharray(gridlines[0])
         return dict(gridOn=True,
@@ -262,7 +264,7 @@ def get_figure_properties(fig):
 
 
 def get_axes_properties(ax):
-    props = {'axesbg': export_color(ax.patch.get_facecolor()),
+    props = {'axesbg': color_to_hex(ax.patch.get_facecolor()),
              'axesbgalpha': ax.patch.get_alpha(),
              'bounds': ax.get_position().bounds,
              'dynamic': ax.get_navigate(),
