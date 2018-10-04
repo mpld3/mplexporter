@@ -16,6 +16,7 @@ from matplotlib.path import Path
 from matplotlib.markers import MarkerStyle
 from matplotlib.transforms import Affine2D
 from matplotlib import ticker
+from .convertors import StrMethodTickFormatterConvertor
 
 
 def export_color(color):
@@ -216,6 +217,10 @@ def get_axis_properties(axis):
     formatter = axis.get_major_formatter()
     if isinstance(formatter, ticker.NullFormatter):
         props['tickformat'] = ""
+    elif isinstance(formatter, ticker.StrMethodFormatter):
+        convertor = StrMethodTickFormatterConvertor(formatter)
+        props['tickformat'] = convertor.output 
+        props['tickformat_formatter'] = "str_method"
     elif isinstance(formatter, ticker.IndexFormatter):
         props['tickformat'] = [text.get_text() for text in axis.get_ticklabels()]
         props['tickformat_formatter'] = "index"

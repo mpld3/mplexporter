@@ -1,3 +1,11 @@
+import matplotlib
+import os
+
+MPLBE = os.environ.get('MPLBE')
+
+if MPLBE:
+    matplotlib.use(MPLBE)
+
 try:
     from setuptools import setup
 except ImportError:
