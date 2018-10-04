@@ -221,6 +221,13 @@ def get_axis_properties(axis):
         convertor = StrMethodTickFormatterConvertor(formatter)
         props['tickformat'] = convertor.output 
         props['tickformat_formatter'] = "str_method"
+    elif isinstance(formatter, ticker.PercentFormatter):
+        props['tickformat'] = {
+	    "xmax": formatter.xmax,
+	    "decimals": formatter.decimals,
+	    "symbol": formatter.symbol,
+        } 
+        props['tickformat_formatter'] = "percent"
     elif isinstance(formatter, ticker.IndexFormatter):
         props['tickformat'] = [text.get_text() for text in axis.get_ticklabels()]
         props['tickformat_formatter'] = "index"
