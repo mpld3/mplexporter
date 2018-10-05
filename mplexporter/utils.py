@@ -207,7 +207,7 @@ def get_axis_properties(axis):
     # Use tick values if appropriate
     locator = axis.get_major_locator()
     props['nticks'] = len(locator())
-    if type(locator) in [ticker.FixedLocator, ticker.AutoLocator]:
+    if isinstance(formatter, ticker.FixedLocator):
         props['tickvalues'] = list(locator())
     else:
         props['tickvalues'] = None
