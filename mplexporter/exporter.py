@@ -174,7 +174,7 @@ class Exporter(object):
                     self.draw_line(ax, child, force_trans=ax.transAxes)
                 elif isinstance(child, matplotlib.collections.Collection):
                     self.draw_collection(ax, child,
-                                         force_pathtrans=ax.transAxes)
+                                         force_offsettrans=ax.transAxes)
                 else:
                     warnings.warn("Legend element %s not impemented" % child)
             except NotImplementedError:
