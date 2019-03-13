@@ -28,5 +28,5 @@ before_install:
   - conda update --yes conda
 
 script:
-  - nosetests mplexporter
+  - MPLBE=Agg nosetests mplexporter
 
