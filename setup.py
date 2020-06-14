@@ -21,7 +21,7 @@ MAINTAINER_EMAIL = "jakevdp@cs.washington.edu"
 DOWNLOAD_URL = 'https://github.com/mpld3/mplexporter'
 URL = DOWNLOAD_URL
 LICENSE = 'BSD 3-clause'
-VERSION = '0.0.1'
+VERSION = '0.1.0'
 
 setup(name=NAME,
       version=VERSION,
