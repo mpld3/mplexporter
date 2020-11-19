@@ -262,16 +262,12 @@ class Exporter(object):
                   'alpha': collection._alpha,
                   'zorder': collection.get_zorder()}
 
-        offset_dict = {"data": "before",
-                       "screen": "after"}
-        offset_order = offset_dict[collection.get_offset_position()]
-
         self.renderer.draw_path_collection(paths=processed_paths,
                                            path_coordinates=path_coords,
                                            path_transforms=path_transforms,
                                            offsets=offsets,
                                            offset_coordinates=offset_coords,
-                                           offset_order=offset_order,
+                                           offset_order="after",
                                            styles=styles,
                                            mplobj=collection)
 
