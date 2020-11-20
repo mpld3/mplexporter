@@ -18,11 +18,11 @@ class Renderer(object):
 
     @staticmethod
     def ax_has_xgrid(ax):
-        return bool(ax and ax.xaxis._gridOnMajor and ax.yaxis.get_gridlines())
+        return bool(ax and ax.xaxis._major_tick_kw['gridOn'] and ax.yaxis.get_gridlines())
 
     @staticmethod
     def ax_has_ygrid(ax):
-        return bool(ax and ax.yaxis._gridOnMajor and ax.yaxis.get_gridlines())
+        return bool(ax and ax.yaxis._major_tick_kw['gridOn'] and ax.yaxis.get_gridlines())
 
     @property
     def current_ax_zoomable(self):
