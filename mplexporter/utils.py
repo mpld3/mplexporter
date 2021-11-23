@@ -228,7 +228,8 @@ def get_axis_properties(axis):
 	    "symbol": formatter.symbol,
         } 
         props['tickformat_formatter'] = "percent"
-    elif isinstance(formatter, ticker.IndexFormatter):
+    elif hasattr(ticker, 'IndexFormatter') and isinstance(formatter, ticker.IndexFormatter):
+        # IndexFormatter was dropped in matplotlib 3.5
         props['tickformat'] = [text.get_text() for text in axis.get_ticklabels()]
         props['tickformat_formatter'] = "index"
     elif isinstance(formatter, ticker.FixedFormatter):
