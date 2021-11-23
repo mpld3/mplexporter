@@ -294,7 +294,11 @@ def get_axes_properties(ax):
         axis = getattr(ax, axname + 'axis')
         domain = getattr(ax, 'get_{0}lim'.format(axname))()
         lim = domain
-        if isinstance(axis.converter, matplotlib.dates.DateConverter):
+        if (
+            isinstance(axis.converter, matplotlib.dates._SwitchableDateConverter) or
+            isinstance(axis.converter, matplotlib.dates.DateConverter) or
+            isinstance(axis.converter, matplotlib.dates.ConciseDateConverter)
+        ):
             scale = 'date'
             try:
                 import pandas as pd
