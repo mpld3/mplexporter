@@ -219,14 +219,14 @@ def get_axis_properties(axis):
         props['tickformat'] = ""
     elif isinstance(formatter, ticker.StrMethodFormatter):
         convertor = StrMethodTickFormatterConvertor(formatter)
-        props['tickformat'] = convertor.output 
+        props['tickformat'] = convertor.output
         props['tickformat_formatter'] = "str_method"
     elif isinstance(formatter, ticker.PercentFormatter):
         props['tickformat'] = {
-	    "xmax": formatter.xmax,
-	    "decimals": formatter.decimals,
-	    "symbol": formatter.symbol,
-        } 
+            "xmax": formatter.xmax,
+            "decimals": formatter.decimals,
+            "symbol": formatter.symbol,
+        }
         props['tickformat_formatter'] = "percent"
     elif hasattr(ticker, 'IndexFormatter') and isinstance(formatter, ticker.IndexFormatter):
         # IndexFormatter was dropped in matplotlib 3.5
