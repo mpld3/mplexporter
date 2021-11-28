@@ -295,9 +295,16 @@ def get_axes_properties(ax):
         domain = getattr(ax, 'get_{0}lim'.format(axname))()
         lim = domain
         if (
-            isinstance(axis.converter, matplotlib.dates._SwitchableDateConverter) or
-            isinstance(axis.converter, matplotlib.dates.DateConverter) or
-            isinstance(axis.converter, matplotlib.dates.ConciseDateConverter)
+            (
+                hasattr(matplotlib.dates, '_SwitchableDateConverter') and
+                isinstance(axis.converter, matplotlib.dates._SwitchableDateConverter)
+            ) or (
+                hasattr(matplotlib.dates, 'DateConverter') and
+                isinstance(axis.converter, matplotlib.dates.DateConverter)
+            ) or (
+                hasattr(matplotlib.dates, 'ConciseDateConverter') and
+                isinstance(axis.converter, matplotlib.dates.ConciseDateConverter)
+            )
         ):
             scale = 'date'
             try:
