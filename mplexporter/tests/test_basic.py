@@ -1,7 +1,7 @@
 import matplotlib
 import numpy as np
 from distutils.version import LooseVersion
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 from numpy.testing import assert_warns
 
 from ..exporter import Exporter
