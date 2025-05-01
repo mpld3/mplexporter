@@ -297,13 +297,13 @@ def get_axes_properties(ax):
         if (
             (
                 hasattr(matplotlib.dates, '_SwitchableDateConverter') and
-                isinstance(axis.converter, matplotlib.dates._SwitchableDateConverter)
+                isinstance(axis.get_converter(), matplotlib.dates._SwitchableDateConverter)
             ) or (
                 hasattr(matplotlib.dates, 'DateConverter') and
-                isinstance(axis.converter, matplotlib.dates.DateConverter)
+                isinstance(axis.get_converter(), matplotlib.dates.DateConverter)
             ) or (
                 hasattr(matplotlib.dates, 'ConciseDateConverter') and
-                isinstance(axis.converter, matplotlib.dates.ConciseDateConverter)
+                isinstance(axis.get_converter(), matplotlib.dates.ConciseDateConverter)
             )
         ):
             scale = 'date'
@@ -313,7 +313,7 @@ def get_axes_properties(ax):
             except ImportError:
                 pd = None
 
-            if (pd is not None and isinstance(axis.converter,
+            if (pd is not None and isinstance(axis.get_converter(),
                                               PeriodConverter)):
                 _dates = [pd.Period(ordinal=int(d), freq=axis.freq)
                           for d in domain]
