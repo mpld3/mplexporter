@@ -297,13 +297,13 @@ def get_axes_properties(ax):
         if (
             (
                 hasattr(matplotlib.dates, '_SwitchableDateConverter') and
-                isinstance(axis.get_converter(), matplotlib.dates._SwitchableDateConverter)
+                isinstance(axis.units, matplotlib.dates._SwitchableDateConverter)
             ) or (
                 hasattr(matplotlib.dates, 'DateConverter') and
-                isinstance(axis.get_converter(), matplotlib.dates.DateConverter)
+                isinstance(axis.units, matplotlib.dates.DateConverter)
             ) or (
                 hasattr(matplotlib.dates, 'ConciseDateConverter') and
-                isinstance(axis.get_converter(), matplotlib.dates.ConciseDateConverter)
+                isinstance(axis.units, matplotlib.dates.ConciseDateConverter)
             )
         ):
             scale = 'date'
