@@ -235,6 +235,9 @@ def get_axis_properties(axis):
     elif isinstance(formatter, ticker.FixedFormatter):
         props['tickformat'] = list(formatter.seq)
         props['tickformat_formatter'] = "fixed"
+    elif isinstance(formatter, ticker.FuncFormatter):
+        props['tickformat'] = [formatter(value) for value in props['tickvalues']]
+        props['tickformat_formatter'] = "func"
     elif not any(label.get_visible() for label in axis.get_ticklabels()):
         props['tickformat'] = ""
     else:
