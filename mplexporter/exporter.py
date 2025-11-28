@@ -52,8 +52,8 @@ class Exporter(object):
         self.crawl_fig(fig)
 
     @staticmethod
-    def process_transform(transform, ax=None, data=None, return_trans=False,
-                          force_trans=None):
+    def process_transform(transform, ax=None, fig=None, data=None,
+                          return_trans=False, force_trans=None):
         """Process the transform and convert data to figure or data coordinates
 
         Parameters
@@ -62,6 +62,8 @@ class Exporter(object):
             The transform applied to the data
         ax : matplotlib Axes object (optional)
             The axes the data is associated with
+        fig : matplotlib Figure object (optional)
+            The figure the data is associated with
         data : ndarray (optional)
             The array of data to be transformed.
         return_trans : bool (optional)
@@ -91,10 +93,17 @@ class Exporter(object):
             transform = force_trans
 
         code = "display"
+        fig_ref = ax.figure if ax is not None else fig
         if ax is not None:
             for (c, trans) in [("data", ax.transData),
                                ("axes", ax.transAxes),
                                ("figure", ax.figure.transFigure),
+                               ("display", transforms.IdentityTransform())]:
+                if transform.contains_branch(trans):
+                    code, transform = (c, transform - trans)
+                    break
+        elif fig_ref is not None:
+            for (c, trans) in [("figure", fig_ref.transFigure),
                                ("display", transforms.IdentityTransform())]:
                 if transform.contains_branch(trans):
                     code, transform = (c, transform - trans)
@@ -115,6 +124,12 @@ class Exporter(object):
         """Crawl the figure and process all axes"""
         with self.renderer.draw_figure(fig=fig,
                                        props=utils.get_figure_properties(fig)):
+            if getattr(fig, "_suptitle", None) is not None:
+                self.draw_figure_text(fig, fig._suptitle, text_type="suptitle")
+            for text in fig.texts:
+                if text is not getattr(fig, "_suptitle", None):
+                    self.draw_figure_text(fig, text)
+
             for ax in fig.axes:
                 self.crawl_ax(ax)
 
@@ -148,6 +163,20 @@ class Exporter(object):
                 with self.renderer.draw_legend(legend=legend, props=props):
                     if props['visible']:
                         self.crawl_legend(ax, legend)
+
+    def draw_figure_text(self, fig, text, text_type=None):
+        """Process a figure-level matplotlib text object"""
+        content = text.get_text()
+        if content:
+            transform = text.get_transform()
+            position = text.get_position()
+            coords, position = self.process_transform(transform, None, fig,
+                                                      position)
+            style = utils.get_text_style(text)
+            self.renderer.draw_figure_text(text=content, position=position,
+                                           coordinates=coords,
+                                           text_type=text_type,
+                                           style=style, mplobj=text)
 
     def crawl_legend(self, ax, legend):
         """
@@ -184,7 +213,8 @@ class Exporter(object):
     def draw_line(self, ax, line, force_trans=None):
         """Process a matplotlib line and call renderer.draw_line"""
         coordinates, data = self.process_transform(line.get_transform(),
-                                                   ax, line.get_xydata(),
+                                                   ax=ax,
+                                                   data=line.get_xydata(),
                                                    force_trans=force_trans)
         linestyle = utils.get_line_style(line)
         if (linestyle['dasharray'] is None
@@ -208,8 +238,9 @@ class Exporter(object):
         if content:
             transform = text.get_transform()
             position = text.get_position()
-            coords, position = self.process_transform(transform, ax,
-                                                      position,
+            coords, position = self.process_transform(transform,
+                                                      ax=ax,
+                                                      data=position,
                                                       force_trans=force_trans)
             style = utils.get_text_style(text)
             self.renderer.draw_text(text=content, position=position,
@@ -222,7 +253,8 @@ class Exporter(object):
         vertices, pathcodes = utils.SVG_path(patch.get_path())
         transform = patch.get_transform()
         coordinates, vertices = self.process_transform(transform,
-                                                       ax, vertices,
+                                                       ax=ax,
+                                                       data=vertices,
                                                        force_trans=force_trans)
         linestyle = utils.get_path_style(patch, fill=patch.get_fill())
         self.renderer.draw_path(data=vertices,
@@ -239,13 +271,14 @@ class Exporter(object):
          offsets, paths) = _collections_prepare_points(collection, ax)
 
         offset_coords, offsets = self.process_transform(
-            transOffset, ax, offsets, force_trans=force_offsettrans)
+            transOffset, ax=ax, data=offsets, force_trans=force_offsettrans)
         path_coords = self.process_transform(
-            transform, ax, force_trans=force_pathtrans)
+            transform, ax=ax, force_trans=force_pathtrans)
 
         processed_paths = [utils.SVG_path(path) for path in paths]
         processed_paths = [(self.process_transform(
-            transform, ax, path[0], force_trans=force_pathtrans)[1], path[1])
+            transform, ax=ax, data=path[0],
+            force_trans=force_pathtrans)[1], path[1])
                            for path in processed_paths]
 
         path_transforms = collection.get_transforms()
