@@ -176,9 +176,9 @@ class Exporter(object):
                     self.draw_collection(ax, child,
                                          force_offsettrans=ax.transAxes)
                 else:
-                    warnings.warn("Legend element %s not impemented" % child)
+                    warnings.warn("Legend element %s not implemented" % child)
             except NotImplementedError:
-                warnings.warn("Legend element %s not impemented" % child)
+                warnings.warn("Legend element %s not implemented" % child)
 
     def draw_line(self, ax, line, force_trans=None):
         """Process a matplotlib line and call renderer.draw_line"""
