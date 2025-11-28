@@ -158,6 +158,11 @@ class Renderer(object):
         if markerstyle is not None:
             self.draw_markers(data, coordinates, markerstyle, label, mplobj)
 
+    def draw_figure_text(self, text, position, coordinates, style,
+                         text_type=None, mplobj=None):
+        """Figure-level text; renderers that care can override."""
+        pass
+
     def draw_line(self, data, coordinates, style, label, mplobj=None):
         """
         Draw a line. By default, draw the line via the draw_path() command.
