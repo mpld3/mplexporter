@@ -235,6 +235,10 @@ def get_axis_properties(axis):
     else:
         props['tickvalues'] = None
 
+    minor_locator = axis.get_minor_locator()
+    props['minor_tickvalues'] = list(axis.get_minorticklocs()) if minor_locator else None
+    props['minorticklength'] = axis._minor_tick_kw.get('size', None)
+
     # Find tick formats
     props['tickformat_formatter'] = ""
     formatter = axis.get_major_formatter()
@@ -278,6 +282,7 @@ def get_axis_properties(axis):
 
     # Get associated grid
     props['grid'] = get_grid_style(axis)
+    props['minor_grid'] = get_grid_style(axis, which='minor')
 
     # get axis visibility
     props['visible'] = axis.get_visible()
@@ -285,20 +290,23 @@ def get_axis_properties(axis):
     return props
 
 
-def get_grid_style(axis):
-    gridlines = axis.get_gridlines()
-    if axis._major_tick_kw['gridOn'] and len(gridlines) > 0:
-        color = export_color(gridlines[0].get_color())
-        alpha = gridlines[0].get_alpha()
-        dasharray = get_dasharray(gridlines[0])
-        linewidth = gridlines[0].get_linewidth()
-        return dict(gridOn=True,
-                    color=color,
-                    dasharray=dasharray,
-                    linewidth=linewidth,
-                    alpha=alpha)
-    else:
+def get_grid_style(axis, which='major'):
+    tick_kw = axis._minor_tick_kw if which == 'minor' else axis._major_tick_kw
+
+    if not tick_kw.get('gridOn'):
         return {"gridOn": False}
+
+    rc = matplotlib.rcParams
+    color = export_color(tick_kw.get('grid_color', tick_kw.get('grid_c', rc['grid.color'])))
+    alpha = tick_kw.get('grid_alpha', rc['grid.alpha'])
+    dasharray = _dasharray_from_linestyle(tick_kw.get('grid_linestyle', tick_kw.get('grid_ls', rc['grid.linestyle'])))
+    linewidth = tick_kw.get('grid_linewidth', tick_kw.get('grid_lw', rc['grid.linewidth']))
+
+    return dict(gridOn=True,
+                color=color,
+                dasharray=dasharray,
+                linewidth=linewidth,
+                alpha=alpha)
 
 
 def get_figure_properties(fig):
