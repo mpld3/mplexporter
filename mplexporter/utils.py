@@ -45,6 +45,18 @@ LINESTYLES = _many_to_one({('solid', '-', (None, None)): 'none',
                            ('', ' ', 'None', 'none'): None})
 
 
+def _dasharray_from_linestyle(ls):
+    if ls is None:
+        return LINESTYLES['solid']
+    if isinstance(ls, tuple) and len(ls) == 2:  # NOTE: No support for offset yet.
+        return ','.join(str(val) for val in ls[1]) if ls[1] else LINESTYLES['solid']
+    dasharray = LINESTYLES.get(ls, 'not found')
+    if dasharray == 'not found':
+        warnings.warn(f"line style '{ls}' not understood: defaulting to solid")
+        dasharray = LINESTYLES['solid']
+    return dasharray
+
+
 def get_dasharray(obj):
     """Get an SVG dash array for the given matplotlib linestyle
 
@@ -59,16 +71,27 @@ def get_dasharray(obj):
     dasharray : string
         The HTML/SVG dasharray code associated with the object.
     """
-    if obj.__dict__.get('_dashSeq', None) is not None:
-        return ','.join(map(str, obj._dashSeq))
+    if dashseq := getattr(obj, '_dashSeq', None):
+        return _dasharray_from_linestyle(dashseq)
+
+    ls = obj.get_linestyle()
+    if isinstance(ls, (list, tuple)) and not isinstance(ls, str):
+        ls = ls[0] if len(ls) else None
+    return _dasharray_from_linestyle(ls)
+
+
+def get_dasharray_list(collection):
+    """Return a list of SVG dash arrays for a matplotlib Collection"""
+    linestyles = None
+    if hasattr(collection, "get_dashes"):
+        linestyles = collection.get_dashes()
+    elif hasattr(collection, "get_linestyle"):
+        linestyles = collection.get_linestyle()
     else:
-        ls = obj.get_linestyle()
-        dasharray = LINESTYLES.get(ls, 'not found')
-        if dasharray == 'not found':
-            warnings.warn("line style '{0}' not understood: "
-                          "defaulting to solid line.".format(ls))
-            dasharray = LINESTYLES['solid']
-        return dasharray
+        return None
+    if not isinstance(linestyles, (list, tuple)):
+        linestyles = [linestyles]
+    return [_dasharray_from_linestyle(ls) for ls in linestyles]
 
 
 PATH_DICT = {Path.LINETO: 'L',
