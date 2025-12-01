@@ -237,6 +237,10 @@ def get_axis_properties(axis):
     props['minor_tickvalues'] = list(axis.get_minorticklocs()) if minor_locator else None
     props['minorticklength'] = axis._minor_tick_kw.get('size', None)
 
+    minor_locator = axis.get_minor_locator()
+    props['minor_tickvalues'] = list(axis.get_minorticklocs()) if minor_locator else None
+    props['minorticklength'] = axis._minor_tick_kw.get('size', None)
+
     # Find tick formats
     props['tickformat_formatter'] = ""
     formatter = axis.get_major_formatter()
