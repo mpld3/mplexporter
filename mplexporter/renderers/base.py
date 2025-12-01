@@ -204,8 +204,12 @@ class Renderer(object):
         if np.size(facecolor) == 0:
             facecolor = ['none']
 
+        dasharray = styles.get('dasharray', None)
+        if dasharray is None or np.size(dasharray) == 0:
+            dasharray = ['none']
+
         elements = [paths, path_transforms, offsets,
-                    edgecolor, styles['linewidth'], facecolor]
+                    edgecolor, styles['linewidth'], facecolor, dasharray]
 
         it = itertools
         return it.islice(py3k.zip(*py3k.map(it.cycle, elements)), N)
@@ -258,7 +262,7 @@ class Renderer(object):
 
         for tup in self._iter_path_collection(paths, path_transforms,
                                               offsets, styles):
-            (path, path_transform, offset, ec, lw, fc) = tup
+            (path, path_transform, offset, ec, lw, fc, da) = tup
             vertices, pathcodes = path
             path_transform = transforms.Affine2D(path_transform)
             vertices = path_transform.transform(vertices)
@@ -268,7 +272,7 @@ class Renderer(object):
             style = {"edgecolor": utils.export_color(ec),
                      "facecolor": utils.export_color(fc),
                      "edgewidth": lw,
-                     "dasharray": "10,0",
+                     "dasharray": da,
                      "alpha": styles['alpha'],
                      "zorder": styles['zorder']}
             self.draw_path(data=vertices, coordinates=path_coordinates,
