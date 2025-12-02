@@ -186,6 +186,29 @@ def get_text_style(text):
     return style
 
 
+def _tick_format_props(formatter, tickvalues, labels):
+    if isinstance(formatter, ticker.NullFormatter):
+        return "", ""
+    if isinstance(formatter, ticker.StrMethodFormatter):
+        convertor = StrMethodTickFormatterConvertor(formatter)
+        return convertor.output, "str_method"
+    if isinstance(formatter, ticker.PercentFormatter):
+        return {
+            "xmax": formatter.xmax,
+            "decimals": formatter.decimals,
+            "symbol": formatter.symbol,
+        }, "percent"
+    if hasattr(ticker, 'IndexFormatter') and isinstance(formatter, ticker.IndexFormatter):
+        return [text.get_text() for text in labels], "index"
+    if isinstance(formatter, ticker.FixedFormatter):
+        return list(formatter.seq), "fixed"
+    if isinstance(formatter, ticker.FuncFormatter) and tickvalues:
+        return [formatter(value) for value in tickvalues], "func"
+    if not any(label.get_visible() for label in labels):
+        return "", ""
+    return None, ""
+
+
 def get_axis_properties(axis):
     """Return the property dictionary for a matplotlib.Axis instance"""
     props = {}
@@ -215,37 +238,13 @@ def get_axis_properties(axis):
     minor_locator = axis.get_minor_locator()
     props['minor_tickvalues'] = list(axis.get_minorticklocs()) if minor_locator else None
     props['minorticklength'] = axis._minor_tick_kw.get('size', None)
+    props['majorticklength'] = axis._major_tick_kw.get('size', None)
 
     # Find tick formats
-    props['tickformat_formatter'] = ""
-    formatter = axis.get_major_formatter()
-    if isinstance(formatter, ticker.NullFormatter):
-        props['tickformat'] = ""
-    elif isinstance(formatter, ticker.StrMethodFormatter):
-        convertor = StrMethodTickFormatterConvertor(formatter)
-        props['tickformat'] = convertor.output
-        props['tickformat_formatter'] = "str_method"
-    elif isinstance(formatter, ticker.PercentFormatter):
-        props['tickformat'] = {
-            "xmax": formatter.xmax,
-            "decimals": formatter.decimals,
-            "symbol": formatter.symbol,
-        }
-        props['tickformat_formatter'] = "percent"
-    elif hasattr(ticker, 'IndexFormatter') and isinstance(formatter, ticker.IndexFormatter):
-        # IndexFormatter was dropped in matplotlib 3.5
-        props['tickformat'] = [text.get_text() for text in axis.get_ticklabels()]
-        props['tickformat_formatter'] = "index"
-    elif isinstance(formatter, ticker.FixedFormatter):
-        props['tickformat'] = list(formatter.seq)
-        props['tickformat_formatter'] = "fixed"
-    elif isinstance(formatter, ticker.FuncFormatter) and props['tickvalues']:
-        props['tickformat'] = [formatter(value) for value in props['tickvalues']]
-        props['tickformat_formatter'] = "func"
-    elif not any(label.get_visible() for label in axis.get_ticklabels()):
-        props['tickformat'] = ""
-    else:
-        props['tickformat'] = None
+    props['minor_tickformat'], props['minor_tickformat_formatter'] = _tick_format_props(
+        axis.get_minor_formatter(), props['minor_tickvalues'], axis.get_minorticklabels())
+    props['tickformat'], props['tickformat_formatter'] = _tick_format_props(
+        axis.get_major_formatter(), props['tickvalues'], axis.get_ticklabels())
 
     # Get axis scale
     props['scale'] = axis.get_scale()
