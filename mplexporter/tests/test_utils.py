@@ -1,5 +1,5 @@
-from numpy.testing import assert_allclose, assert_equal
-from . import plt
+from numpy.testing import assert_, assert_allclose, assert_equal
+from . import plt, matplotlib
 from .. import utils
 
 
@@ -33,3 +33,23 @@ def test_axis_w_fixed_formatter():
     # NOTE: Issue #471
     # assert_equal(props['tickformat'], labels)
 
+
+def test_funcformatter_exports_major_ticklabels():
+    # Test both log and normal cases:
+    for scale, x, y in [
+        ("linear", [0, 1], [0, 1]),
+        ("log", [1, 10, 100], [0, 1, 2]),
+    ]:
+        fig, ax = plt.subplots()
+        ax.set_xscale(scale)
+        ax.plot([1, 10, 100], [0, 1, 2])
+        ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x, pos: f"t{pos}"))
+
+        props = utils.get_axis_properties(ax.xaxis)
+        plt.close(fig)
+
+        assert_equal(props["scale"], scale)
+        assert_equal(props["tickformat_formatter"], "func")
+        assert_(props["tickvalues"] is not None)
+        assert_equal(len(props["tickvalues"]), len(props["tickformat"]))
+        assert_equal(props["tickformat"][:3], ["t0", "t1", "t2"])
