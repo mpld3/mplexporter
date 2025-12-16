@@ -203,7 +203,7 @@ def _tick_format_props(formatter, tickvalues, labels):
     if isinstance(formatter, ticker.FixedFormatter):
         return list(formatter.seq), "fixed"
     if isinstance(formatter, ticker.FuncFormatter) and tickvalues:
-        return [formatter(value) for value in tickvalues], "func"
+        return [formatter(value, i) for i, value in enumerate(tickvalues)], "func"
     if not any(label.get_visible() for label in labels):
         return "", ""
     return None, ""
@@ -230,7 +230,7 @@ def get_axis_properties(axis):
     # Use tick values if appropriate
     locator = axis.get_major_locator()
     props['nticks'] = len(locator())
-    if isinstance(locator, ticker.FixedLocator):
+    if isinstance(locator, ticker.FixedLocator) or isinstance(axis.get_major_formatter(), ticker.FuncFormatter):
         props['tickvalues'] = list(locator())
     else:
         props['tickvalues'] = None

@@ -1,9 +1,6 @@
 import os
 
-MPLBE = os.environ.get('MPLBE', 'Agg')
-
-if MPLBE:
-    import matplotlib
+import matplotlib
+if MPLBE := os.environ.get('MPLBE', 'Agg'):
     matplotlib.use(MPLBE)
-
 import matplotlib.pyplot as plt
