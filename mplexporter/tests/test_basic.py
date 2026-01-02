@@ -16,9 +16,18 @@ def fake_renderer_output(fig, Renderer):
     return renderer.output
 
 
+# Separate function such that pytest fail reports are more readable,
+# because they print the values of the args, i.e. lines1, lines2.
+def _assert_output_equal_clean(lines1, lines2):
+    for l1, l2 in zip(lines1, lines2):
+        assert l1 == l2
+
+
 def _assert_output_equal(text1, text2):
-    for line1, line2 in zip(text1.strip().split(), text2.strip().split()):
-        assert line1 == line2
+    _assert_output_equal_clean(
+        [l.strip() for l in text1.strip().split('\n')],
+        [l.strip() for l in text2.strip().split('\n')],
+    )
 
 
 def test_lines():

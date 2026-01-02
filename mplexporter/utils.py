@@ -206,11 +206,9 @@ def get_axis_properties(axis):
 
     # Use tick values if appropriate
     locator = axis.get_major_locator()
-    props['nticks'] = len(locator())
-    if isinstance(locator, ticker.FixedLocator):
-        props['tickvalues'] = list(locator())
-    else:
-        props['tickvalues'] = None
+    tick_locs = list(locator())  # We'll use them later in some cases.
+    props['nticks'] = len(tick_locs)
+    props['tickvalues'] = tick_locs if isinstance(locator, ticker.FixedLocator) else None
 
     # Find tick formats
     props['tickformat_formatter'] = ""
@@ -235,9 +233,12 @@ def get_axis_properties(axis):
     elif isinstance(formatter, ticker.FixedFormatter):
         props['tickformat'] = list(formatter.seq)
         props['tickformat_formatter'] = "fixed"
-    elif isinstance(formatter, ticker.FuncFormatter) and props['tickvalues']:
-        props['tickformat'] = [formatter(value) for value in props['tickvalues']]
-        props['tickformat_formatter'] = "func"
+    elif isinstance(formatter, ticker.FuncFormatter):
+        # It's impossible for JS to re-run our function, so run it now and save as Fixed.
+        if props['tickvalues'] is None:
+            props['tickvalues'] = tick_locs
+        props['tickformat'] = [formatter(value, i) for i, value in enumerate(props['tickvalues'])]
+        props['tickformat_formatter'] = "fixed"
     elif not any(label.get_visible() for label in axis.get_ticklabels()):
         props['tickformat'] = ""
     else:

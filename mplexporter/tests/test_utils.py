@@ -1,4 +1,5 @@
 from numpy.testing import assert_allclose, assert_equal
+from matplotlib import ticker
 from . import plt
 from .. import utils
 
@@ -33,3 +34,23 @@ def test_axis_w_fixed_formatter():
     # NOTE: Issue #471
     # assert_equal(props['tickformat'], labels)
 
+
+def test_axis_w_funcformatter_autolocator():
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    ax.set_xlim(0, 1)
+
+    def formatter(value, position):
+        return f"{position}:{value:.1f}"
+
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
+
+    props = utils.get_axis_properties(ax.xaxis)
+
+    assert_equal(props['tickformat_formatter'], "fixed")
+    assert props['tickvalues'] is not None
+    expected = [formatter(value, i)
+                for i, value in enumerate(props['tickvalues'])]
+    assert_equal(props['tickformat'], expected)
+
+    plt.close(fig)
