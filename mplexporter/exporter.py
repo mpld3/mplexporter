@@ -6,10 +6,11 @@ relevant pieces to a renderer.
 """
 import warnings
 import io
+import numpy as np
 from . import utils
 
 import matplotlib
-from matplotlib import transforms, collections
+from matplotlib import transforms, collections, path as mpath
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 class Exporter(object):
@@ -267,7 +268,7 @@ class Exporter(object):
                         force_offsettrans=None):
         """Process a matplotlib collection and call renderer.draw_collection"""
         (transform, transOffset,
-         offsets, paths) = collection._prepare_points()
+         offsets, paths) = prepare_points_for_collection(collection, ax)
 
         offset_coords, offsets = self.process_transform(
             transOffset, ax=ax, data=offsets, force_trans=force_offsettrans)
@@ -313,3 +314,53 @@ class Exporter(object):
                                  style={"alpha": image.get_alpha(),
                                         "zorder": image.get_zorder()},
                                  mplobj=image)
+
+
+def prepare_points_for_collection(collection, ax):
+    # This code is based on matplotlib's mpl.collections._prepare_points.
+    # See: https://matplotlib.org/2.2.2/_modules/matplotlib/collections.html
+    #
+    # Our implementation differs in that we preserves data-space
+    # vertices/offsets whenever a non-affine ax.transData branch is involved
+    # (log scales, semilog, etc); that's the `contains_branch` test. As a
+    # result, fill_between, scatter, and other PathCollections on log axes
+    # export with pathcoordinates/offsetcoordinates == 'data', so the rendered
+    # polygons obey zooming/panning.
+    transform = collection.get_transform()
+    transOffset = collection.get_offset_transform()
+    offsets = collection.get_offsets()
+    paths = collection.get_paths()
+
+    if collection.have_units():
+        paths = []
+        for path in collection.get_paths():
+            vertices = path.vertices
+            xs, ys = vertices[:, 0], vertices[:, 1]
+            xs = collection.convert_xunits(xs)
+            ys = collection.convert_yunits(ys)
+            paths.append(mpath.Path(np.column_stack([xs, ys]), path.codes))
+
+        if offsets.size:
+            xs = collection.convert_xunits(offsets[:, 0])
+            ys = collection.convert_yunits(offsets[:, 1])
+            offsets = np.column_stack([xs, ys])
+
+    def contains_branch(tr):
+        return ax is not None and tr.contains_branch(ax.transData)
+
+    if not transform.is_affine and not contains_branch(transform):
+        paths = [transform.transform_path_non_affine(path)
+                    for path in paths]
+        transform = transform.get_affine()
+
+    if not transOffset.is_affine and not contains_branch(transOffset):
+        offsets = transOffset.transform_non_affine(offsets)
+        # This might have changed an ndarray into a masked array.
+        transOffset = transOffset.get_affine()
+
+    if isinstance(offsets, np.ma.MaskedArray):
+        offsets = offsets.filled(np.nan)
+        # Changing from a masked array to nan-filled ndarray
+        # is probably most efficient at this point.
+
+    return transform, transOffset, offsets, paths
