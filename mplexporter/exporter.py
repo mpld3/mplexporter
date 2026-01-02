@@ -236,7 +236,7 @@ class Exporter(object):
                         force_offsettrans=None):
         """Process a matplotlib collection and call renderer.draw_collection"""
         (transform, transOffset,
-         offsets, paths) = _collections_prepare_points(collection, ax)
+         offsets, paths) = prepare_points_for_collection(collection, ax)
 
         offset_coords, offsets = self.process_transform(
             transOffset, ax, offsets, force_trans=force_offsettrans)
@@ -282,32 +282,33 @@ class Exporter(object):
                                  mplobj=image)
 
 
-def _collections_prepare_points(self, ax):
-    # Code is from mpl.collections._prepare_points, but we preserves data-space
+def prepare_points_for_collection(collection, ax):
+    # This code is based on matplotlib's mpl.collections._prepare_points.
+    # See: https://matplotlib.org/2.2.2/_modules/matplotlib/collections.html
+    #
+    # Our implementation differs in that we preserves data-space
     # vertices/offsets whenever a non-affine ax.transData branch is involved
-    # (log scales, semilog, etc.) ; that's the `contains_branch` test.
-    # As a result, fill_between, scatter, and other PathCollections on log axes
+    # (log scales, semilog, etc); that's the `contains_branch` test. As a
+    # result, fill_between, scatter, and other PathCollections on log axes
     # export with pathcoordinates/offsetcoordinates == 'data', so the rendered
     # polygons obey zooming/panning.
-    #
-    # The first arg is called self, to keep code close to original.
-    transform = self.get_transform()
-    transOffset = self.get_offset_transform()
-    offsets = self.get_offsets()
-    paths = self.get_paths()
+    transform = collection.get_transform()
+    transOffset = collection.get_offset_transform()
+    offsets = collection.get_offsets()
+    paths = collection.get_paths()
 
-    if self.have_units():
+    if collection.have_units():
         paths = []
-        for path in self.get_paths():
+        for path in collection.get_paths():
             vertices = path.vertices
             xs, ys = vertices[:, 0], vertices[:, 1]
-            xs = self.convert_xunits(xs)
-            ys = self.convert_yunits(ys)
+            xs = collection.convert_xunits(xs)
+            ys = collection.convert_yunits(ys)
             paths.append(mpath.Path(np.column_stack([xs, ys]), path.codes))
 
         if offsets.size:
-            xs = self.convert_xunits(offsets[:, 0])
-            ys = self.convert_yunits(offsets[:, 1])
+            xs = collection.convert_xunits(offsets[:, 0])
+            ys = collection.convert_yunits(offsets[:, 1])
             offsets = np.column_stack([xs, ys])
 
     def contains_branch(tr):
