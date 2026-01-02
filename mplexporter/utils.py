@@ -292,9 +292,11 @@ def get_grid_style(axis):
         color = export_color(gridlines[0].get_color())
         alpha = gridlines[0].get_alpha()
         dasharray = get_dasharray(gridlines[0])
+        linewidth = gridlines[0].get_linewidth()
         return dict(gridOn=True,
                     color=color,
                     dasharray=dasharray,
+                    linewidth=linewidth,
                     alpha=alpha)
     else:
         return {"gridOn": False}
