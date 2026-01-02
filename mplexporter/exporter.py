@@ -292,6 +292,7 @@ class Exporter(object):
         styles = {'linewidth': collection.get_linewidths(),
                   'facecolor': collection.get_facecolors(),
                   'edgecolor': collection.get_edgecolors(),
+                  'dasharray': utils.get_dasharray_list(collection),
                   'alpha': collection._alpha,
                   'zorder': collection.get_zorder()}
 
