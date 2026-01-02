@@ -45,7 +45,7 @@ LINESTYLES = _many_to_one({('solid', '-', (None, None)): 'none',
                            ('', ' ', 'None', 'none'): None})
 
 
-def _dasharray_from_linestyle(ls):
+def dasharray_from_linestyle(ls):
     if ls is None:
         return LINESTYLES['solid']
     if isinstance(ls, tuple) and len(ls) == 2:  # NOTE: No support for offset yet.
@@ -72,12 +72,12 @@ def get_dasharray(obj):
         The HTML/SVG dasharray code associated with the object.
     """
     if dashseq := getattr(obj, '_dashSeq', None):
-        return _dasharray_from_linestyle(dashseq)
+        return dasharray_from_linestyle(dashseq)
 
     ls = obj.get_linestyle()
     if isinstance(ls, (list, tuple)) and not isinstance(ls, str):
         ls = ls[0] if len(ls) else None
-    return _dasharray_from_linestyle(ls)
+    return dasharray_from_linestyle(ls)
 
 
 def get_dasharray_list(collection):
@@ -91,7 +91,7 @@ def get_dasharray_list(collection):
         return None
     if not isinstance(linestyles, (list, tuple)):
         linestyles = [linestyles]
-    return [_dasharray_from_linestyle(ls) for ls in linestyles]
+    return [dasharray_from_linestyle(ls) for ls in linestyles]
 
 
 PATH_DICT = {Path.LINETO: 'L',
