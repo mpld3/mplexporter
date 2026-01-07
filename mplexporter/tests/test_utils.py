@@ -53,3 +53,21 @@ def test_funcformatter_exports_major_ticklabels():
         assert_(props["tickvalues"] is not None)
         assert_equal(len(props["tickvalues"]), len(props["tickformat"]))
         assert_equal(props["tickformat"][:3], ["t0", "t1", "t2"])
+
+
+def test_custom_formatter_exports_major_ticklabels():
+    class CustomFormatter(matplotlib.ticker.Formatter):
+        def __call__(self, x, pos=None):
+            return f"c{pos}"
+
+    fig, ax = plt.subplots()
+    ax.plot([0, 1, 2], [0, 1, 2])
+    ax.xaxis.set_major_formatter(CustomFormatter())
+
+    props = utils.get_axis_properties(ax.xaxis)
+    plt.close(fig)
+
+    assert_equal(props["tickformat_formatter"], "func")
+    assert_(props["tickvalues"] is not None)
+    assert_equal(len(props["tickvalues"]), len(props["tickformat"]))
+    assert_equal(props["tickformat"][:3], ["c0", "c1", "c2"])

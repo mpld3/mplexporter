@@ -209,6 +209,14 @@ def get_text_style(text):
     return style
 
 
+def is_py_only_formatter(formatter):
+    return (
+        isinstance(formatter, ticker.FuncFormatter) or
+        (isinstance(formatter, ticker.Formatter) and
+         not formatter.__class__.__module__.startswith("matplotlib."))
+    )
+
+
 def _tick_format_props(formatter, tickvalues, labels):
     if isinstance(formatter, ticker.NullFormatter):
         return "", ""
@@ -225,7 +233,11 @@ def _tick_format_props(formatter, tickvalues, labels):
         return [text.get_text() for text in labels], "index"
     if isinstance(formatter, ticker.FixedFormatter):
         return list(formatter.seq), "fixed"
-    if isinstance(formatter, ticker.FuncFormatter) and tickvalues:
+    if is_py_only_formatter(formatter) and tickvalues:
+        if hasattr(formatter, "set_locs"):
+            formatter.set_locs(tickvalues)
+        if hasattr(formatter, "format_ticks"):
+            return list(formatter.format_ticks(tickvalues)), "func"
         return [formatter(value, i) for i, value in enumerate(tickvalues)], "func"
     if not any(label.get_visible() for label in labels):
         return "", ""
@@ -252,8 +264,10 @@ def get_axis_properties(axis):
 
     # Use tick values if appropriate
     locator = axis.get_major_locator()
+    formatter = axis.get_major_formatter()
     props['nticks'] = len(locator())
-    if isinstance(locator, ticker.FixedLocator) or isinstance(axis.get_major_formatter(), ticker.FuncFormatter):
+    if (isinstance(locator, ticker.FixedLocator) or
+            is_py_only_formatter(formatter)):
         props['tickvalues'] = list(locator())
     else:
         props['tickvalues'] = None
@@ -267,7 +281,7 @@ def get_axis_properties(axis):
     props['minor_tickformat'], props['minor_tickformat_formatter'] = _tick_format_props(
         axis.get_minor_formatter(), props['minor_tickvalues'], axis.get_minorticklabels())
     props['tickformat'], props['tickformat_formatter'] = _tick_format_props(
-        axis.get_major_formatter(), props['tickvalues'], axis.get_ticklabels())
+        formatter, props['tickvalues'], axis.get_ticklabels())
 
     # Get axis scale
     props['scale'] = axis.get_scale()
